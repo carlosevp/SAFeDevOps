@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { createPortal } from "react-dom";
 
 type Props = {
@@ -10,48 +10,44 @@ type Props = {
   busy: boolean;
 };
 
+/**
+ * Classic fixed overlay (no <dialog>): native dialog + ::backdrop are inconsistent across
+ * browsers when combined with SPA layout; this pattern always dims and stacks above the app.
+ */
 export function PartialExportModal({ open, confirmedCount, total, onCancel, onConfirm, busy }: Readonly<Props>) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
-
-  useEffect(() => {
-    const el = dialogRef.current;
-    if (!el) return;
-    if (open) {
-      if (!el.open) el.showModal();
-    } else {
-      el.close();
-    }
-  }, [open]);
-
   useEffect(() => {
     if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape" && !busy) onCancel();
     }
     globalThis.addEventListener("keydown", onKey);
-    return () => globalThis.removeEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      globalThis.removeEventListener("keydown", onKey);
+    };
   }, [open, busy, onCancel]);
 
-  const modal = (
-    <dialog
-      ref={dialogRef}
-      className="partial-export-dialog"
-      aria-labelledby="partial-export-title"
-      aria-modal="true"
-      onCancel={(e) => {
-        if (busy) e.preventDefault();
-        else onCancel();
-      }}
-    >
-      {/* Explicit scrim: native ::backdrop is unreliable when the dialog is nested or restyled; portal + this layer always dims the page. */}
-      <div
-        className="partial-export-scrim"
-        aria-hidden
-        onMouseDown={() => {
+  if (!open) return null;
+
+  return createPortal(
+    <div className="partial-export-overlay">
+      <button
+        type="button"
+        className="partial-export-scrim-btn"
+        aria-label="Close dialog"
+        onClick={() => {
           if (!busy) onCancel();
         }}
       />
-      <div className="modal-dialog card partial-export-panel" onMouseDown={(e) => e.stopPropagation()}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="partial-export-title"
+        className="modal-dialog card partial-export-panel"
+        onMouseDown={(e) => e.stopPropagation()}
+      >
         <h2 id="partial-export-title" className="modal-title">
           Finish early and export?
         </h2>
@@ -77,8 +73,7 @@ export function PartialExportModal({ open, confirmedCount, total, onCancel, onCo
           </button>
         </div>
       </div>
-    </dialog>
+    </div>,
+    document.body
   );
-
-  return createPortal(modal, document.body);
 }
