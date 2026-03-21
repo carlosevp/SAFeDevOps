@@ -48,6 +48,17 @@ DbSession = Annotated[Session, Depends(get_db)]
 AssessmentDep = Annotated[AssessmentDefinition, Depends(get_assessment_definition)]
 UploadFileDep = Annotated[UploadFile, File(...)]
 
+
+def require_assessment_session(session_id: int, db: DbSession) -> AssessmentSession:
+    """Load session from path or 404; keeps HTTPException on a Depends target (not a bare helper)."""
+    row = db.query(AssessmentSession).filter(AssessmentSession.id == session_id).first()
+    if not row:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return row
+
+
+SessionPathDep = Annotated[AssessmentSession, Depends(require_assessment_session)]
+
 UNKNOWN_PRACTICE_DETAIL = "Unknown practice"
 
 # OpenAPI: document HTTPException status codes per operation (Sonar / FastAPI convention).
@@ -68,13 +79,6 @@ def _safe_filename(name: str) -> str:
     base = Path(name).name
     base = re.sub(r"[^A-Za-z0-9._-]+", "_", base)
     return base[:180] if base else "file"
-
-
-def _get_session(db: Session, session_id: int) -> AssessmentSession:
-    s = db.query(AssessmentSession).filter(AssessmentSession.id == session_id).first()
-    if not s:
-        raise HTTPException(status_code=404, detail="Session not found")
-    return s
 
 
 def _get_or_create_practice(db: Session, session: AssessmentSession, key: str) -> PracticeResponse:
@@ -290,10 +294,9 @@ def create_session(body: SessionCreateIn, db: DbSession, definition: AssessmentD
     return _session_full(db, s, definition)
 
 
-@router.get("/sessions/{session_id}", response_model=SessionFullOut)
-def get_session(session_id: int, db: DbSession, definition: AssessmentDep):
-    s = _get_session(db, session_id)
-    return _session_full(db, s, definition)
+@router.get("/sessions/{session_id}", response_model=SessionFullOut, responses=HTTP_404)
+def get_session(session: SessionPathDep, db: DbSession, definition: AssessmentDep):
+    return _session_full(db, session, definition)
 
 
 @router.put(
@@ -302,13 +305,13 @@ def get_session(session_id: int, db: DbSession, definition: AssessmentDep):
     responses=HTTP_404,
 )
 def save_draft(
-    session_id: int,
     practice_key: str,
     body: SavePracticeIn,
+    session: SessionPathDep,
     db: DbSession,
     definition: AssessmentDep,
 ):
-    s = _get_session(db, session_id)
+    s = session
     pdef = definition.practice_by_key(practice_key)
     if not pdef:
         raise HTTPException(status_code=404, detail=UNKNOWN_PRACTICE_DETAIL)
@@ -324,13 +327,13 @@ def save_draft(
     responses=HTTP_400_404,
 )
 async def upload_file(
-    session_id: int,
     practice_key: str,
+    session: SessionPathDep,
     db: DbSession,
     definition: AssessmentDep,
     file: UploadFileDep,
 ):
-    s = _get_session(db, session_id)
+    s = session
     pdef = definition.practice_by_key(practice_key)
     if not pdef:
         raise HTTPException(status_code=404, detail=UNKNOWN_PRACTICE_DETAIL)
@@ -375,13 +378,13 @@ async def upload_file(
     responses=HTTP_404,
 )
 def delete_file(
-    session_id: int,
     practice_key: str,
     file_id: str,
+    session: SessionPathDep,
     db: DbSession,
     definition: AssessmentDep,
 ):
-    s = _get_session(db, session_id)
+    s = session
     row = _get_or_create_practice(db, s, practice_key)
     try:
         meta = json.loads(row.files_json or "[]")
@@ -436,12 +439,12 @@ def _persist_review_result(
     responses=HTTP_400_404_503,
 )
 def run_review(
-    session_id: int,
     practice_key: str,
+    session: SessionPathDep,
     db: DbSession,
     definition: AssessmentDep,
 ):
-    s = _get_session(db, session_id)
+    s = session
     pdef = definition.practice_by_key(practice_key)
     if not pdef:
         raise HTTPException(status_code=404, detail=UNKNOWN_PRACTICE_DETAIL)
@@ -484,13 +487,13 @@ def run_review(
     responses=HTTP_400_404_503,
 )
 def submit_followup(
-    session_id: int,
     practice_key: str,
     body: FollowUpAnswerIn,
+    session: SessionPathDep,
     db: DbSession,
     definition: AssessmentDep,
 ):
-    s = _get_session(db, session_id)
+    s = session
     pdef = definition.practice_by_key(practice_key)
     if not pdef:
         raise HTTPException(status_code=404, detail=UNKNOWN_PRACTICE_DETAIL)
@@ -539,15 +542,19 @@ def submit_followup(
     return out
 
 
-@router.post("/sessions/{session_id}/practice/{practice_key}/confirm", response_model=SessionFullOut)
+@router.post(
+    "/sessions/{session_id}/practice/{practice_key}/confirm",
+    response_model=SessionFullOut,
+    responses=HTTP_400_404,
+)
 def confirm_practice(
-    session_id: int,
     practice_key: str,
     body: ConfirmPracticeIn,
+    session: SessionPathDep,
     db: DbSession,
     definition: AssessmentDep,
 ):
-    s = _get_session(db, session_id)
+    s = session
     pdef = definition.practice_by_key(practice_key)
     if not pdef:
         raise HTTPException(status_code=404, detail=UNKNOWN_PRACTICE_DETAIL)
@@ -595,8 +602,8 @@ def confirm_practice(
     response_model=SessionFullOut,
     responses=HTTP_400_404,
 )
-def navigate(session_id: int, index: int, db: DbSession, definition: AssessmentDep):
-    s = _get_session(db, session_id)
+def navigate(index: int, session: SessionPathDep, db: DbSession, definition: AssessmentDep):
+    s = session
     keys = _ordered_keys(definition)
     if index < 0 or index >= len(keys):
         raise HTTPException(status_code=400, detail="Invalid index")
@@ -605,16 +612,16 @@ def navigate(session_id: int, index: int, db: DbSession, definition: AssessmentD
     return _session_full(db, s, definition)
 
 
-@router.get("/sessions/{session_id}/summary-json")
+@router.get("/sessions/{session_id}/summary-json", responses=HTTP_400_404)
 def summary_json(
-    session_id: int,
+    session: SessionPathDep,
     db: DbSession,
     definition: AssessmentDep,
     allow_incomplete: bool = False,
 ):
-    s = _get_session(db, session_id)
+    s = session
     keys = _ordered_keys(definition)
-    rmap = load_responses_map(db, session_id)
+    rmap = load_responses_map(db, s.id)
     if not allow_incomplete:
         for k in keys:
             r = rmap.get(k)
@@ -647,10 +654,10 @@ def _commit_export_zip(
 
 
 @router.post("/sessions/{session_id}/export", responses=HTTP_400_404)
-def export_zip(session_id: int, db: DbSession, definition: AssessmentDep):
-    s = _get_session(db, session_id)
+def export_zip(session: SessionPathDep, db: DbSession, definition: AssessmentDep):
+    s = session
     keys = _ordered_keys(definition)
-    rmap = load_responses_map(db, session_id)
+    rmap = load_responses_map(db, s.id)
     for k in keys:
         r = rmap.get(k)
         if not r or not r.user_confirmed:
@@ -660,8 +667,8 @@ def export_zip(session_id: int, db: DbSession, definition: AssessmentDep):
 
 @router.post("/sessions/{session_id}/export-partial", responses=HTTP_400_404)
 def export_partial_zip(
-    session_id: int,
     body: PartialExportIn,
+    session: SessionPathDep,
     db: DbSession,
     definition: AssessmentDep,
 ):
@@ -670,9 +677,9 @@ def export_partial_zip(
             status_code=400,
             detail="Confirm partial export: set confirm_partial to true in the request body.",
         )
-    s = _get_session(db, session_id)
+    s = session
     keys = _ordered_keys(definition)
-    rmap = load_responses_map(db, session_id)
+    rmap = load_responses_map(db, s.id)
     confirmed = sum(1 for k in keys if rmap.get(k) and rmap[k].user_confirmed)
     total = len(keys)
     partial_flag = total == 0 or confirmed < total
