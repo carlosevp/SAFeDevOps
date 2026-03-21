@@ -1,0 +1,62 @@
+# Minimal second file showing how admins can maintain a smaller trial assessment.
+# Point the API at this file by changing `assessment_yaml` in `app/settings.py` (or extend settings with an env var).
+
+assessment_version: "0.0.1-sample"
+
+defaults:
+  follow_up_cap: 2
+  sufficiency_confidence_threshold: 0.7
+  low_confidence_flag_threshold: 0.55
+
+review_prompts:
+  sufficiency_system: |
+    You are a concise reviewer. Return only JSON as instructed.
+  sufficiency_user_template: |
+    Pipeline area: {pipeline_area}
+    Practice: {practice_name}
+    Practice key: {practice_key}
+    What this practice evaluates:
+    {what_it_evaluates}
+    User-facing prompt they answered:
+    {user_prompt}
+    Team narrative (current):
+    {narrative}
+    Prior follow-up transcript (if any):
+    {follow_up_transcript}
+    Rubric anchor summaries (for scoring calibration):
+    {rubric_summary}
+    Sufficiency confidence threshold (internal): {sufficiency_confidence_threshold}
+    Follow-up rounds used so far: {follow_up_rounds_used}
+    Follow-up cap: {follow_up_cap}
+
+rubrics:
+  safedevops_default:
+    name: Sample rubric
+    anchors:
+      - score: 1.0
+        name: Initial
+        summary: Ad hoc practices.
+      - score: 3.0
+        name: Defined
+        summary: Clear team practices.
+      - score: 5.0
+        name: Optimizing
+        summary: Strong feedback loops.
+
+pipeline_areas:
+  - key: sample_area
+    name: Sample area
+    order: 1
+    practices:
+      - key: sample_practice
+        name: Sample practice
+        what_it_evaluates: |
+          Whether the team can describe one concrete example.
+        enterprise_examples:
+          - A single bullet example
+        user_prompt: |
+          Give one specific example from the last month.
+        evidence_encouragement: |
+          Optional screenshot or PDF.
+        ai_review:
+          rubric_ref: safedevops_default

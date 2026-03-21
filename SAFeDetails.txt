@@ -1,0 +1,524 @@
+Extracted SAFe DevOps structure
+
+Your screenshots align to the standard SAFe DevOps Health Radar structure of four pipeline areas:
+
+Continuous Exploration
+
+Continuous Integration
+
+Continuous Deployment
+
+Release on Demand
+
+And the 16 practices shown in your screenshots are:
+
+Continuous Exploration
+
+Hypothesize
+
+Collaborate & Research
+
+Architect
+
+Synthesize
+
+Continuous Integration
+
+Develop
+
+Build
+
+Test End-to-End
+
+Stage
+
+Continuous Deployment
+
+Deploy
+
+Verify
+
+Monitor
+
+Respond
+
+Release on Demand
+
+Release
+
+Stabilize
+
+Measure
+
+Learn
+
+Extracted assessment content from your screenshots
+
+Below is a cleaned first-pass content set based on the screenshots you uploaded. I kept it close to what is visible and useful for a first build. This is the output I’d give Cursor first so it can scaffold the assessment content model.
+
+Assessment content draft for the app
+1) Continuous Exploration
+Hypothesize
+
+What it evaluates
+How well the team translates business ideas into clear, measurable hypotheses and MVP-oriented statements.
+
+In an enterprise this could look like
+
+Formulate and test hypotheses on customer needs with MVPs
+
+Measurable outcomes are documented
+
+Gather feedback through A/B testing and customer surveys
+
+Static testing / feedback loops performed to identify risks early
+
+Prompt to the user
+Describe how your team turns ideas or requests into clear hypotheses with measurable outcomes. Include how you validate assumptions, whether MVPs are used, and how you gather early feedback.
+
+Evidence to encourage
+
+backlog examples
+
+hypothesis statements
+
+experiment docs
+
+A/B test screenshots
+
+product metrics screenshots
+
+Collaborate & Research
+
+What it evaluates
+How well product, business, technology, and subject-matter experts collaborate to define needs and shape what should be built.
+
+In an enterprise this could look like
+
+Empathy mapping, user interviews, journey mapping
+
+Feedback loops like NPS and analytics
+
+Quality Engineers provide subject matter expertise
+
+Assumptions are tested to reduce the risk of building the wrong thing
+
+Prompt to the user
+Describe how your team collaborates with business, product, architecture, engineering, QA, and other experts to understand customer or user needs and shape the work.
+
+Evidence to encourage
+
+discovery notes
+
+workshop materials
+
+user research outputs
+
+analytics screenshots
+
+backlog refinement artifacts
+
+Architect
+
+What it evaluates
+How well architecture supports continuous delivery, policy compliance, loose coupling, operability, and manageable technical debt.
+
+In an enterprise this could look like
+
+Apply design thinking to support usability and customer-centric solutions
+
+Consider testability, especially impacts to automation and performance
+
+Architecture is reviewed with dev teams to uncover complexities
+
+Prompt to the user
+Describe how architecture decisions support continuous delivery for your team. Include maintainability, coupling, testability, performance, security, and how teams participate in architecture decisions.
+
+Evidence to encourage
+
+architecture diagrams
+
+ADRs
+
+NFR documentation
+
+dependency maps
+
+quality attribute review notes
+
+Synthesize
+
+What it evaluates
+How well the team turns exploration outputs into well-formed, prioritized features and backlog items.
+
+In an enterprise this could look like
+
+Features include benefit hypothesis and measurable outcomes
+
+Features are prioritized by customer impact and value using story mapping, backlog refinement, and feature canvases
+
+Static testing drives better stories, clearer acceptance criteria, and improved refinement
+
+Prompt to the user
+Describe how your team turns discovery and exploration into prioritized features or backlog items. Include how work is refined, prioritized, and made ready for delivery.
+
+Evidence to encourage
+
+feature templates
+
+acceptance criteria examples
+
+prioritization artifacts
+
+story maps
+
+WSJF or similar prioritization evidence
+
+2) Continuous Integration
+Develop
+
+What it evaluates
+How well teams implement stories in vertical slices with sound engineering practices.
+
+In an enterprise this could look like
+
+Team uses relative estimation to size user stories
+
+Devs can run their own local environment easily
+
+Unit testing gates run at PR time, including benchmarks and standards
+
+Quality engineers engage with devs to shape test scope
+
+Commits are linked to Jira in commit messages
+
+Security/privacy concerns are discussed during story development
+
+Prompt to the user
+Describe how your team develops and implements work. Include story sizing, local development setup, pull requests, unit testing, code review, and collaboration with QA/security.
+
+Evidence to encourage
+
+Azure DevOps PR screenshots
+
+branch policy screenshots
+
+local setup docs
+
+unit test reports
+
+code review workflow screenshots
+
+Build
+
+What it evaluates
+How consistently builds are automated, integrated, and quality-gated.
+
+In an enterprise this could look like
+
+Automated build at PR time
+
+SonarQube, App Scan, differential code coverage standards enforced at build time
+
+App scan standards enforced at build time
+
+Prompt to the user
+Describe how builds are triggered, validated, and governed in your team. Include automation, PR checks, quality gates, static analysis, code coverage, and how broken builds are handled.
+
+Evidence to encourage
+
+pipeline screenshots
+
+SonarQube screenshots
+
+Snyk/AppScan screenshots
+
+build logs
+
+quality gate settings
+
+Test End-to-End
+
+What it evaluates
+How well teams validate functionality in production-like environments with sufficient automation and risk-based testing.
+
+In an enterprise this could look like
+
+Manual exploratory testing is used early to front-load defects
+
+Automated system and regression testing established
+
+Risk-based testing is applied
+
+Test data management is centralized and standardized
+
+DAST testing against live environments
+
+Prompt to the user
+Describe how your team performs end-to-end, regression, exploratory, integration, and security-related testing. Include environment quality, test automation, and test data management.
+
+Evidence to encourage
+
+test execution dashboards
+
+regression suite screenshots
+
+DAST screenshots
+
+test plans
+
+environment evidence
+
+Stage
+
+What it evaluates
+How well validated features are deployed to production-like staging for final validation before production.
+
+In an enterprise this could look like
+
+Testing validates the deployment process and mimics the production deployment process
+
+UAT is used by the product owner to ensure acceptance criteria are met from their perspective
+
+Prompt to the user
+Describe how your team stages and validates releases before production. Include production-like environments, UAT, deployment validation, and release readiness checks.
+
+Evidence to encourage
+
+staging pipeline screenshots
+
+UAT evidence
+
+release validation checklists
+
+environment topology screenshots
+
+3) Continuous Deployment
+Deploy
+
+What it evaluates
+How well features are deployed to production independently from release and with controlled visibility.
+
+In an enterprise this could look like
+
+Deployments through UCD or a supported ADO pipeline
+
+Deployment data is recorded automatically in Jira for metrics
+
+Feature toggles or versioning are in place to enable dark releases
+
+Stage quality gates are verified
+
+Prompt to the user
+Describe how your team deploys to production. Include deployment automation, release/deployment separation, feature flags, deployment approvals, and deployment telemetry.
+
+Evidence to encourage
+
+deployment pipeline screenshots
+
+release logs
+
+feature flag screenshots
+
+deployment history
+
+change records
+
+Verify
+
+What it evaluates
+How well teams verify deployment success, detect failures, and recover safely.
+
+In an enterprise this could look like
+
+Periodic pen tests from IT Security
+
+Deployment verification feeds metrics like change failure rate
+
+Automated production validation performed
+
+Prompt to the user
+Describe how your team verifies that deployments succeeded and how issues are detected, rolled back, or fixed forward.
+
+Evidence to encourage
+
+smoke test evidence
+
+post-deploy validation dashboards
+
+rollback procedures
+
+synthetic tests
+
+release validation reports
+
+Monitor
+
+What it evaluates
+How well teams collect and use telemetry across the solution stack to understand health, performance, incidents, and value.
+
+In an enterprise this could look like
+
+Logs go to Graylog and relevant team members have access
+
+Log review drives upstream quality/process changes
+
+Teams continuously evaluate monitoring needs
+
+SolarWinds and Dynatrace agents collect metrics
+
+Monitoring covers third-party and cloud platforms where applicable
+
+Automated actions for restart/file cleanup/incident creation/root cause
+
+On-prem apps track exceptions, errors, slowdowns, user experience
+
+Dashboards provide real-time insights
+
+APIs are monitored with health checks and log analysis
+
+Prompt to the user
+Describe how your team monitors production behavior, reliability, user experience, logs, metrics, dashboards, and alerts. Include how monitoring is used to improve delivery and operations.
+
+Evidence to encourage
+
+Dynatrace screenshots
+
+Azure dashboards
+
+Graylog/Splunk dashboards
+
+alert rules
+
+API health dashboards
+
+Respond
+
+What it evaluates
+How well teams detect, troubleshoot, and resolve production issues proactively and collaboratively.
+
+In an enterprise this could look like
+
+ITSM processes are followed for incident management and trustworthy metrics are generated
+
+Incidents are raised appropriately even when not discovered by the end user
+
+Quality engineers provide expertise to recreate and troubleshoot incidents and apply automation where possible
+
+Prompt to the user
+Describe how your team responds to incidents and production issues. Include detection, triage, collaboration between Dev and Ops, RCA, automation, and recovery practices.
+
+Evidence to encourage
+
+incident reports
+
+ServiceNow screenshots
+
+RCA docs
+
+on-call procedures
+
+incident metrics dashboards
+
+4) Release on Demand
+Release
+
+What it evaluates
+How well deployed features can be made available to end users on demand.
+
+In an enterprise this could look like
+
+Automated production testing that validates toggled functionality
+
+Release on Demand
+
+Prompt to the user
+Describe how your team releases functionality to users once it is deployed. Include feature flags, phased rollout, blue/green or canary concepts if applicable, and business-controlled release readiness.
+
+Evidence to encourage
+
+feature flag evidence
+
+release calendar/process
+
+rollout screenshots
+
+launch controls
+
+production validation evidence
+
+Stabilize
+
+What it evaluates
+How well the production environment remains stable, reliable, secure, and recoverable.
+
+In an enterprise this could look like
+
+Change failure rate is measured and monitored
+
+Retrospectives are regularly performed to seek quality improvement opportunities
+
+Quality metrics like service availability time are documented and met
+
+Automated recovery from outages
+
+Prompt to the user
+Describe how your team ensures production stability after release. Include resiliency, outage recovery, availability, retrospectives, change failure tracking, and service quality measures.
+
+Evidence to encourage
+
+SLA/SLO dashboards
+
+incident trend reports
+
+retro outputs
+
+availability reports
+
+disaster recovery evidence
+
+Measure
+
+What it evaluates
+How well the team collects factual information about the value delivered and compares it against intended outcomes.
+
+Prompt to the user
+Describe how your team measures whether delivered work created the intended business or user value. Include operational metrics, customer feedback, product metrics, and feature-level outcomes.
+
+Evidence to encourage
+
+KPI dashboards
+
+analytics screenshots
+
+adoption reports
+
+experiment results
+
+customer feedback summaries
+
+Learn
+
+What it evaluates
+How well the team uses outcomes and empirical feedback to make pivot-or-persevere decisions and improve.
+
+In an enterprise this could look like
+
+Team provides input into the effort/value ratio and what that means for next time
+
+Retrospectives are performed regularly to assess how to handle similar work in the future based on value
+
+Prompt to the user
+Describe how your team learns from delivered work and uses those learnings to change future decisions, priorities, engineering practices, or release behavior.
+
+Evidence to encourage
+
+retrospectives
+
+post-implementation reviews
+
+lessons learned
+
+pivot/persevere decisions
+
+improvement backlog items
