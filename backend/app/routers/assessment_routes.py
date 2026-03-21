@@ -37,16 +37,6 @@ from app.settings import settings
 
 logger = logging.getLogger(__name__)
 
-
-def _safe_log_path_segment(value: str, *, max_len: int = 128) -> str:
-    """Sanitize user-controlled URL path segments before logging (log injection / S5145)."""
-    if not value:
-        return ""
-    # Drop control characters (incl. \\r \\n) and non-ASCII; keep typical practice keys [a-z0-9_-].
-    cleaned = "".join(c for c in value if 32 <= ord(c) < 127)
-    return cleaned[:max_len]
-
-
 router = APIRouter(
     prefix="/api",
     tags=["assessment"],
@@ -490,9 +480,9 @@ def run_review(
         return ReviewResultOut(ok=False, error=str(e))
     except Exception:
         logger.exception(
-            "run_review_unexpected session_id=%s practice_key=%s",
+            "run_review_unexpected session_id=%s practice_response_id=%s",
             s.id,
-            _safe_log_path_segment(practice_key),
+            row.id,
         )
         return ReviewResultOut(
             ok=False,
@@ -570,9 +560,9 @@ def submit_followup(
         return ReviewResultOut(ok=False, error=str(e))
     except Exception:
         logger.exception(
-            "submit_followup_review_unexpected session_id=%s practice_key=%s",
+            "submit_followup_review_unexpected session_id=%s practice_response_id=%s",
             s.id,
-            _safe_log_path_segment(practice_key),
+            row.id,
         )
         return ReviewResultOut(
             ok=False,
@@ -586,9 +576,9 @@ def submit_followup(
     except Exception:
         db.rollback()
         logger.exception(
-            "submit_followup_persist_failed session_id=%s practice_key=%s",
+            "submit_followup_persist_failed session_id=%s practice_response_id=%s",
             s.id,
-            _safe_log_path_segment(practice_key),
+            row.id,
         )
         return ReviewResultOut(ok=False, error="Could not save follow-up review. Try again.")
 
