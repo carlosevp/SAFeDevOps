@@ -92,23 +92,22 @@ Serve `frontend/dist` with any static host and point API calls at your FastAPI d
 
 This repo is a **monorepo** (`backend/` Python + `frontend/` Vite). **Railpack** fails at the repo root because there is no single `package.json` or `requirements.txt` there.
 
-**Backend (API) — recommended**
+**Single service (recommended) — full app on one URL**
 
-- A root **`Dockerfile`** builds the FastAPI app from `backend/` and runs `uvicorn` on **`PORT`** (Railway injects this).
-- **`railway.toml`** sets the builder to Docker, watch paths, and **`/api/health`** for health checks.
-- In Railway → your API service → **Variables**, set at least:
-  - `OPENAI_API_KEY`
-  - `CORS_ORIGINS` — include every origin that will load the SPA (e.g. `https://your-frontend.up.railway.app` or your custom domain). Comma-separated, no spaces unless quoted per your host rules.
+- The root **`Dockerfile`** is **multi-stage**: it runs `npm run build` for the SPA, copies `frontend/dist` into the image as `spa_dist/`, then runs FastAPI + **uvicorn** on **`PORT`**.
+- Visiting `/` serves the React app; `/api/*` is the API; `/docs` is OpenAPI. Same-origin requests use relative `/api` (leave **`VITE_API_BASE_URL`** unset in the Docker build).
+- **`railway.toml`** selects Docker, watch paths, and **`/api/health`** for health checks.
+- In Railway → **Variables**, set at least **`OPENAI_API_KEY`**. **`CORS_ORIGINS`** is optional when the UI and API share the same Railway hostname; add extra origins if you also host the UI elsewhere.
 
-**Frontend (static)**
+**Split deployment (API + static frontend)**
 
-- Build with `VITE_API_BASE_URL` set to your **public API URL** (e.g. `https://your-api.up.railway.app`, no trailing slash), then deploy `frontend/dist` (Railway static site, Cloudflare Pages, etc.). See `frontend/.env.example`.
+- Build the frontend with **`VITE_API_BASE_URL`** set to your public API URL (no trailing slash), deploy `frontend/dist` to any static host, and set **`CORS_ORIGINS`** on the API to include that static origin. See `frontend/.env.example`.
 
 **Alternative (Railpack only, no Docker)**
 
 - In the service **Settings**, set **Root Directory** to `backend` so Railpack sees `requirements.txt`. Set **Start Command** to:  
   `uvicorn app.main:app --host 0.0.0.0 --port $PORT`  
-  (and install deps via Railpack’s default or a custom build command if needed.)
+  You would still need a separate frontend host (this path does not build the SPA).
 
 ## Troubleshooting
 
