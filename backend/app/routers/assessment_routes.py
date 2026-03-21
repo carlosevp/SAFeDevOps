@@ -46,6 +46,7 @@ router = APIRouter(
 
 DbSession = Annotated[Session, Depends(get_db)]
 AssessmentDep = Annotated[AssessmentDefinition, Depends(get_assessment_definition)]
+UploadFileDep = Annotated[UploadFile, File(...)]
 
 UNKNOWN_PRACTICE_DETAIL = "Unknown practice"
 
@@ -268,7 +269,7 @@ def _session_full(db: Session, session: AssessmentSession, definition) -> Sessio
 
 
 @router.post("/sessions", response_model=SessionFullOut)
-def create_session(body: SessionCreateIn, db: Session = Depends(get_db), definition=Depends(get_assessment_definition)):
+def create_session(body: SessionCreateIn, db: DbSession, definition: AssessmentDep):
     s = AssessmentSession(
         name=body.name.strip(),
         email=str(body.email).strip(),
@@ -312,7 +313,7 @@ async def upload_file(
     practice_key: str,
     db: DbSession,
     definition: AssessmentDep,
-    file: UploadFile = File(...),
+    file: UploadFileDep,
 ):
     s = _get_session(db, session_id)
     pdef = definition.practice_by_key(practice_key)
@@ -563,7 +564,7 @@ def confirm_practice(
 
 
 @router.post("/sessions/{session_id}/navigate/{index}", response_model=SessionFullOut)
-def navigate(session_id: int, index: int, db: Session = Depends(get_db), definition=Depends(get_assessment_definition)):
+def navigate(session_id: int, index: int, db: DbSession, definition: AssessmentDep):
     s = _get_session(db, session_id)
     keys = _ordered_keys(definition)
     if index < 0 or index >= len(keys):
@@ -615,7 +616,7 @@ def _commit_export_zip(
 
 
 @router.post("/sessions/{session_id}/export")
-def export_zip(session_id: int, db: Session = Depends(get_db), definition=Depends(get_assessment_definition)):
+def export_zip(session_id: int, db: DbSession, definition: AssessmentDep):
     s = _get_session(db, session_id)
     keys = _ordered_keys(definition)
     rmap = load_responses_map(db, session_id)
