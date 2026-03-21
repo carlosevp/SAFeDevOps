@@ -108,6 +108,66 @@ export function FinalSummary({ sessionId, data, onNewSession }: Readonly<Props>)
     }
   }
 
+  let summaryBlock: ReactNode;
+  if (summary) {
+    summaryBlock = (
+      <>
+        {summary.export_summary ? (
+          <p className="notice ok" style={{ marginTop: "1rem", marginBottom: 0 }}>
+            {summary.export_summary}
+          </p>
+        ) : null}
+
+        <div className="notice ok" style={{ marginTop: "1rem" }}>
+          <strong>{summary.identity.name}</strong> · {summary.identity.email}
+          <div>{summary.identity.team_name}</div>
+          <div className="subtle" style={{ marginTop: "0.35rem" }}>
+            Completed at {summary.timestamp_utc} · Version {summary.assessment_version}
+          </div>
+        </div>
+
+        <h2>Overall</h2>
+        <p>
+          Overall average score: <strong>{summary.overall_score ?? "n/a"}</strong> (1.0–5.0 scale, confirmed
+          practices only)
+          {summary.overall_confidence == null ? null : (
+            <span className="subtle"> · confidence {summary.overall_confidence.toFixed(2)}</span>
+          )}
+        </p>
+
+        <h2>By pipeline area</h2>
+        <ul>
+          {Object.entries(summary.domain_rollups).map(([area, r]) => (
+            <li key={area}>
+              <strong>{area}</strong>: average {r.average_score ?? "n/a"}
+              {domainIncompleteNote(r)}
+              {domainCountNote(r)}
+              {r.average_confidence == null ? null : (
+                <span className="subtle"> (confidence {r.average_confidence.toFixed(2)})</span>
+              )}
+            </li>
+          ))}
+        </ul>
+
+        <h2>Practice scores</h2>
+        <ul>
+          {summary.practices.map((p) => (
+            <li key={p.practice_name + p.pipeline_area}>
+              <strong>{p.practice_name}</strong> ({p.pipeline_area}
+              {p.practice_completion_status ? ` · ${p.practice_completion_status}` : ""}): {p.score ?? "n/a"}
+              {p.insufficient_after_cap ? " — capped follow-ups" : ""}
+              {p.low_confidence_flag ? " — low confidence" : ""}
+            </li>
+          ))}
+        </ul>
+      </>
+    );
+  } else if (error) {
+    summaryBlock = null;
+  } else {
+    summaryBlock = <p className="subtle">Loading summary…</p>;
+  }
+
   return (
     <div className="card">
       <h1 style={{ marginBottom: "0.35rem" }}>Final summary</h1>
@@ -118,60 +178,7 @@ export function FinalSummary({ sessionId, data, onNewSession }: Readonly<Props>)
 
       {error ? <div className="error-text">{error}</div> : null}
 
-      {summary ? (
-        <>
-          {summary.export_summary ? (
-            <p className="notice ok" style={{ marginTop: "1rem", marginBottom: 0 }}>
-              {summary.export_summary}
-            </p>
-          ) : null}
-
-          <div className="notice ok" style={{ marginTop: "1rem" }}>
-            <strong>{summary.identity.name}</strong> · {summary.identity.email}
-            <div>{summary.identity.team_name}</div>
-            <div className="subtle" style={{ marginTop: "0.35rem" }}>
-              Completed at {summary.timestamp_utc} · Version {summary.assessment_version}
-            </div>
-          </div>
-
-          <h2>Overall</h2>
-          <p>
-            Overall average score: <strong>{summary.overall_score ?? "n/a"}</strong> (1.0–5.0 scale, confirmed
-            practices only)
-            {summary.overall_confidence == null ? null : (
-              <span className="subtle"> · confidence {summary.overall_confidence.toFixed(2)}</span>
-            )}
-          </p>
-
-          <h2>By pipeline area</h2>
-          <ul>
-            {Object.entries(summary.domain_rollups).map(([area, r]) => (
-              <li key={area}>
-                <strong>{area}</strong>: average {r.average_score ?? "n/a"}
-                {domainIncompleteNote(r)}
-                {domainCountNote(r)}
-                {r.average_confidence == null ? null : (
-                  <span className="subtle"> (confidence {r.average_confidence.toFixed(2)})</span>
-                )}
-              </li>
-            ))}
-          </ul>
-
-          <h2>Practice scores</h2>
-          <ul>
-            {summary.practices.map((p) => (
-              <li key={p.practice_name + p.pipeline_area}>
-                <strong>{p.practice_name}</strong> ({p.pipeline_area}
-                {p.practice_completion_status ? ` · ${p.practice_completion_status}` : ""}): {p.score ?? "n/a"}
-                {p.insufficient_after_cap ? " — capped follow-ups" : ""}
-                {p.low_confidence_flag ? " — low confidence" : ""}
-              </li>
-            ))}
-          </ul>
-        </>
-      ) : error ? null : (
-        <p className="subtle">Loading summary…</p>
-      )}
+      {summaryBlock}
 
       <div className="row" style={{ marginTop: "1.35rem", gap: "0.65rem" }}>
         <button type="button" className="btn btn-primary" onClick={() => void onExport()} disabled={exporting}>

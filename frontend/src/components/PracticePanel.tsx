@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type { PracticeConfig, PracticeState, ReviewResult, SessionFull } from "../types";
 import {
   confirmPractice,
@@ -214,6 +214,98 @@ export function PracticePanel({
 
   const sufficiencyOk = Boolean(displayConfirm && !displayQuestions.length);
 
+  let followupSection: ReactNode = null;
+  if (!practiceState.user_confirmed && displayQuestions.length > 0) {
+    followupSection = (
+      <section className="section-block panel-followup" aria-labelledby="followup-heading">
+        <div className="panel-followup-round" id="followup-heading">
+          Follow-up {followUpRoundLabel != null ? `(round ${followUpRoundLabel} of ${cap})` : ""}
+        </div>
+        <p style={{ margin: "0 0 0.35rem", fontWeight: 600 }}>The reviewer needs a bit more detail</p>
+        <p className="subtle" style={{ marginTop: 0 }}>
+          Answer the prompts below. Your main response stays above; new detail will be woven into your narrative when
+          you submit.
+        </p>
+        <div className="response-vs-followup">
+          <div>
+            <div className="section-label" style={{ marginBottom: "0.35rem" }}>
+              Your current response (reference)
+            </div>
+            <div className="original-response-panel">{narrative.trim() || "(empty)"}</div>
+          </div>
+          <div>
+            <div className="section-label" style={{ marginBottom: "0.35rem" }}>
+              What to add next
+            </div>
+            <ol className="followup-questions">
+              {displayQuestions.map((q, i) => (
+                <li key={`${practice.key}-followup-${i}`}>{q}</li>
+              ))}
+            </ol>
+          </div>
+        </div>
+        <label className="sr-only" htmlFor={`followup-${practice.key}`}>
+          Follow-up answers
+        </label>
+        <textarea
+          id={`followup-${practice.key}`}
+          className="narrative"
+          style={{ minHeight: 140 }}
+          value={followupText}
+          onChange={(e) => setFollowupText(e.target.value)}
+          disabled={atCap || reviewBusy}
+          placeholder="Add detail for each question above. Separate answers with a blank line, or a line containing only ---"
+        />
+        <div className="row" style={{ marginTop: "0.5rem" }}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => void onFollowup()}
+            disabled={reviewBusy || atCap || !followupText.trim()}
+          >
+            {reviewBusy ? "Sending…" : "Submit follow-up answers"}
+          </button>
+          {atCap ? <span className="subtle">Follow-up cap reached — use Confirm if available.</span> : null}
+        </div>
+      </section>
+    );
+  }
+
+  const showSufficiencyReview =
+    !practiceState.user_confirmed &&
+    showEval &&
+    Boolean(displaySufficiency || displayConfirm || displayRationale);
+
+  let sufficiencyReviewPanel: ReactNode = null;
+  if (showSufficiencyReview) {
+    sufficiencyReviewPanel = (
+      <div
+        className={sufficiencyOk ? "notice ok" : "notice"}
+        style={{ marginTop: "1rem" }}
+        role="status"
+        aria-live="polite"
+      >
+        <strong>{sufficiencyOk ? "Sufficiency review: ready" : "Sufficiency review: more detail"}</strong>
+        {sufficiencyOk ? (
+          <div style={{ marginTop: "0.35rem", whiteSpace: "pre-wrap" }}>{displayConfirm}</div>
+        ) : (
+          <>
+            {displaySufficiency ? (
+              <div className="subtle" style={{ marginTop: "0.35rem" }}>
+                {displaySufficiency}
+              </div>
+            ) : null}
+            {displayRationale ? (
+              <div className="subtle" style={{ marginTop: "0.35rem", whiteSpace: "pre-wrap" }}>
+                {displayRationale}
+              </div>
+            ) : null}
+          </>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="card">
       <div className="focus-practice-header">
@@ -365,86 +457,9 @@ export function PracticePanel({
         </div>
       ) : null}
 
-      {practiceState.user_confirmed ? null : displayQuestions.length > 0 ? (
-        <section className="section-block panel-followup" aria-labelledby="followup-heading">
-          <div className="panel-followup-round" id="followup-heading">
-            Follow-up {followUpRoundLabel != null ? `(round ${followUpRoundLabel} of ${cap})` : ""}
-          </div>
-          <p style={{ margin: "0 0 0.35rem", fontWeight: 600 }}>The reviewer needs a bit more detail</p>
-          <p className="subtle" style={{ marginTop: 0 }}>
-            Answer the prompts below. Your main response stays above; new detail will be woven into your narrative when
-            you submit.
-          </p>
-          <div className="response-vs-followup">
-            <div>
-              <div className="section-label" style={{ marginBottom: "0.35rem" }}>
-                Your current response (reference)
-              </div>
-              <div className="original-response-panel">{narrative.trim() || "(empty)"}</div>
-            </div>
-            <div>
-              <div className="section-label" style={{ marginBottom: "0.35rem" }}>
-                What to add next
-              </div>
-              <ol className="followup-questions">
-                {displayQuestions.map((q, i) => (
-                  <li key={`${practice.key}-followup-${i}`}>{q}</li>
-                ))}
-              </ol>
-            </div>
-          </div>
-          <label className="sr-only" htmlFor={`followup-${practice.key}`}>
-            Follow-up answers
-          </label>
-          <textarea
-            id={`followup-${practice.key}`}
-            className="narrative"
-            style={{ minHeight: 140 }}
-            value={followupText}
-            onChange={(e) => setFollowupText(e.target.value)}
-            disabled={atCap || reviewBusy}
-            placeholder="Add detail for each question above. Separate answers with a blank line, or a line containing only ---"
-          />
-          <div className="row" style={{ marginTop: "0.5rem" }}>
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => void onFollowup()}
-              disabled={reviewBusy || atCap || !followupText.trim()}
-            >
-              {reviewBusy ? "Sending…" : "Submit follow-up answers"}
-            </button>
-            {atCap ? <span className="subtle">Follow-up cap reached — use Confirm if available.</span> : null}
-          </div>
-        </section>
-      ) : null}
+      {followupSection}
 
-      {practiceState.user_confirmed ? null : showEval && (displaySufficiency || displayConfirm || displayRationale) ? (
-        <div
-          className={sufficiencyOk ? "notice ok" : "notice"}
-          style={{ marginTop: "1rem" }}
-          role="status"
-          aria-live="polite"
-        >
-          <strong>{sufficiencyOk ? "Sufficiency review: ready" : "Sufficiency review: more detail"}</strong>
-          {sufficiencyOk ? (
-            <div style={{ marginTop: "0.35rem", whiteSpace: "pre-wrap" }}>{displayConfirm}</div>
-          ) : (
-            <>
-              {displaySufficiency ? (
-                <div className="subtle" style={{ marginTop: "0.35rem" }}>
-                  {displaySufficiency}
-                </div>
-              ) : null}
-              {displayRationale ? (
-                <div className="subtle" style={{ marginTop: "0.35rem", whiteSpace: "pre-wrap" }}>
-                  {displayRationale}
-                </div>
-              ) : null}
-            </>
-          )}
-        </div>
-      ) : null}
+      {sufficiencyReviewPanel}
 
       {!showEval && displayConfirm && !practiceState.user_confirmed ? (
         <div className="notice ok" style={{ marginTop: "1rem" }} role="status" aria-live="polite">
