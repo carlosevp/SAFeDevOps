@@ -453,14 +453,13 @@ textarea.narrative:disabled {
 }
 
 .btn {
-  border: none;
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
   padding: 0.55rem 1.05rem;
   font: inherit;
   cursor: pointer;
   background: var(--surface-muted);
   color: var(--text);
-  border: 1px solid transparent;
 }
 
 .btn:disabled {
@@ -718,6 +717,7 @@ textarea.narrative:disabled {
 }
 
 .success-banner {
+  display: block;
   font-size: 0.9rem;
   padding: 0.65rem 0.85rem;
   border-radius: var(--radius-sm);
@@ -767,6 +767,31 @@ textarea.narrative:disabled {
 .modal-actions {
   margin-top: 1.25rem;
   justify-content: flex-end;
+}
+
+.partial-export-dialog {
+  position: fixed;
+  inset: 0;
+  max-width: 100vw;
+  max-height: 100vh;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  padding: 1rem;
+  margin: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.partial-export-dialog::backdrop {
+  background: rgba(15, 23, 42, 0.45);
+}
+
+[data-theme="dark"] .partial-export-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.65);
 }
 
 code {

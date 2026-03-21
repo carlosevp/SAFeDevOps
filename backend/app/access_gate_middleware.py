@@ -8,43 +8,45 @@ from starlette.responses import JSONResponse, Response
 
 from app.access_gate import gate_enabled, request_has_valid_gate_cookie
 
+_UNAUTH_API = JSONResponse(status_code=401, content={"detail": "Authentication required."})
+_UNAUTH_PLAIN = Response(status_code=401)
+
+
+def _public_without_cookie(path: str) -> bool:
+    return path.startswith("/api/health") or path.startswith("/api/auth/gate/")
+
+
+def _is_root_level_static_file(path: str) -> bool:
+    return path != "/" and path.count("/") <= 1 and "." in path.split("/")[-1]
+
 
 class AccessGateMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
-        if not gate_enabled():
-            return await call_next(request)
-
-        if request.method == "OPTIONS":
+        if not gate_enabled() or request.method == "OPTIONS":
             return await call_next(request)
 
         path = request.url.path
-
-        if path.startswith("/api/health"):
-            return await call_next(request)
-        if path.startswith("/api/auth/gate/"):
+        if _public_without_cookie(path):
             return await call_next(request)
 
         if path.startswith("/api/"):
-            if not request_has_valid_gate_cookie(request):
-                return JSONResponse(
-                    status_code=401,
-                    content={"detail": "Authentication required."},
-                )
-            return await call_next(request)
-
+            return await self._next_or(request, call_next, json401=True)
         if path.startswith("/assets/"):
-            if not request_has_valid_gate_cookie(request):
-                return Response(status_code=401)
-            return await call_next(request)
-
+            return await self._next_or(request, call_next, json401=False)
         if path in ("/docs", "/redoc", "/openapi.json"):
-            if not request_has_valid_gate_cookie(request):
-                return Response(status_code=401)
-            return await call_next(request)
-
-        if path != "/" and path.count("/") <= 1 and "." in path.split("/")[-1]:
-            if not request_has_valid_gate_cookie(request):
-                return Response(status_code=401)
-            return await call_next(request)
+            return await self._next_or(request, call_next, json401=False)
+        if _is_root_level_static_file(path):
+            return await self._next_or(request, call_next, json401=False)
 
         return await call_next(request)
+
+    async def _next_or(
+        self,
+        request: Request,
+        call_next: RequestResponseEndpoint,
+        *,
+        json401: bool,
+    ) -> Response:
+        if request_has_valid_gate_cookie(request):
+            return await call_next(request)
+        return _UNAUTH_API if json401 else _UNAUTH_PLAIN

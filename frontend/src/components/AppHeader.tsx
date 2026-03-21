@@ -12,14 +12,14 @@ function resolveLogoSrc(prop?: string): string | null {
 }
 
 type Props = {
-  title?: string;
+  readonly title?: string;
   /** Public URL (e.g. file in `public/`). Pass "" to hide via prop override. */
-  logoUrl?: string;
-  subtitle?: string;
-  children?: React.ReactNode;
+  readonly logoUrl?: string;
+  readonly subtitle?: string;
+  readonly children?: React.ReactNode;
 };
 
-export function AppHeader({ title, logoUrl, subtitle, children }: Props) {
+export function AppHeader({ title, logoUrl, subtitle, children }: Readonly<Props>) {
   const resolvedTitle = (title ?? import.meta.env.VITE_APP_TITLE?.trim()) || DEFAULT_TITLE;
   const src = resolveLogoSrc(logoUrl);
   const [logoBroken, setLogoBroken] = useState(false);

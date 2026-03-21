@@ -22,6 +22,101 @@ def evidence_notes_json_for_row(parsed: AIReviewResult) -> str:
         return "[]"
 
 
+def _entry_sufficient(parsed: AIReviewResult, suff_plain: str) -> dict[str, Any]:
+    confirmation = (
+        "Your response looks sufficient to score. Confirm below when you are ready to move on "
+        "(your numeric score stays hidden until export)."
+    )
+    return {
+        "at": _utc_timestamp_z(),
+        "is_sufficient": True,
+        "force_complete": False,
+        "allow_confirm": True,
+        "sufficiency_plain": suff_plain,
+        "follow_up_questions": [],
+        "rationale_short": (parsed.rationale or "")[:800],
+        "confirmation_message": confirmation,
+        "cap_warning": None,
+    }
+
+
+def _entry_forced_complete(parsed: AIReviewResult, suff_plain: str) -> dict[str, Any]:
+    confirmation = (
+        "The follow-up limit was reached. You can still continue; the export will flag this practice as "
+        "lower-confidence or capped."
+    )
+    return {
+        "at": _utc_timestamp_z(),
+        "is_sufficient": False,
+        "force_complete": True,
+        "allow_confirm": True,
+        "sufficiency_plain": suff_plain,
+        "follow_up_questions": [],
+        "rationale_short": (parsed.rationale or "")[:800],
+        "confirmation_message": confirmation,
+        "cap_warning": confirmation,
+    }
+
+
+def _append_followup_transcript(row: PracticeResponse, follow_ups: list[str]) -> None:
+    if not follow_ups:
+        return
+    try:
+        transcript = json.loads(row.follow_up_transcript_json or "[]")
+    except json.JSONDecodeError:
+        transcript = []
+    transcript.append(
+        {
+            "kind": "ai_followups",
+            "round": row.follow_up_rounds_used + 1,
+            "questions": follow_ups,
+        }
+    )
+    row.follow_up_transcript_json = json.dumps(transcript, ensure_ascii=False)
+
+
+def _apply_sufficient_scores(row: PracticeResponse, parsed: AIReviewResult, low_thr: float) -> dict[str, Any]:
+    row.internal_score = f"{float(parsed.internal_score):.3f}"
+    row.sufficiency_confidence = f"{float(parsed.confidence):.4f}"
+    row.rationale_summary = parsed.score_rationale_summary or parsed.rationale
+    row.insufficient_after_cap = False
+    row.low_confidence_flag = float(parsed.confidence) < low_thr
+    row.evidence_notes_json = evidence_notes_json_for_row(parsed)
+    return _entry_sufficient(parsed, confidence_plain(parsed.confidence))
+
+
+def _apply_forced_scores(row: PracticeResponse, parsed: AIReviewResult) -> dict[str, Any]:
+    score = parsed.provisional_internal_score or parsed.internal_score or 2.5
+    row.internal_score = f"{float(score):.3f}"
+    row.sufficiency_confidence = f"{float(parsed.confidence):.4f}"
+    row.rationale_summary = parsed.provisional_score_rationale_summary or parsed.rationale
+    row.insufficient_after_cap = True
+    row.low_confidence_flag = True
+    row.evidence_notes_json = evidence_notes_json_for_row(parsed)
+    return _entry_forced_complete(parsed, confidence_plain(parsed.confidence))
+
+
+def _apply_followup_scores(row: PracticeResponse, parsed: AIReviewResult, follow_ups: list[str]) -> dict[str, Any]:
+    row.internal_score = None
+    row.rationale_summary = None
+    row.insufficient_after_cap = False
+    row.low_confidence_flag = False
+    row.evidence_notes_json = evidence_notes_json_for_row(parsed)
+    _append_followup_transcript(row, follow_ups)
+    suff_plain = confidence_plain(parsed.confidence)
+    return {
+        "at": _utc_timestamp_z(),
+        "is_sufficient": False,
+        "force_complete": False,
+        "allow_confirm": False,
+        "sufficiency_plain": suff_plain,
+        "follow_up_questions": follow_ups,
+        "rationale_short": (parsed.rationale or "")[:800],
+        "confirmation_message": None,
+        "cap_warning": None,
+    }
+
+
 def apply_review_to_row(
     row: PracticeResponse,
     parsed: AIReviewResult,
@@ -37,80 +132,11 @@ def apply_review_to_row(
     follow_ups = list(parsed.follow_up_questions or [])
 
     if parsed.is_sufficient and parsed.internal_score is not None:
-        row.internal_score = f"{float(parsed.internal_score):.3f}"
-        row.sufficiency_confidence = f"{float(parsed.confidence):.4f}"
-        row.rationale_summary = parsed.score_rationale_summary or parsed.rationale
-        row.insufficient_after_cap = False
-        row.low_confidence_flag = float(parsed.confidence) < low_thr
-        row.evidence_notes_json = evidence_notes_json_for_row(parsed)
-        confirmation = (
-            "Your response looks sufficient to score. Confirm below when you are ready to move on "
-            "(your numeric score stays hidden until export)."
-        )
-        entry = {
-            "at": _utc_timestamp_z(),
-            "is_sufficient": True,
-            "force_complete": False,
-            "allow_confirm": True,
-            "sufficiency_plain": suff_plain,
-            "follow_up_questions": [],
-            "rationale_short": (parsed.rationale or "")[:800],
-            "confirmation_message": confirmation,
-            "cap_warning": None,
-        }
+        entry = _apply_sufficient_scores(row, parsed, low_thr)
     elif parsed.force_complete or (at_cap and not parsed.is_sufficient):
-        score = parsed.provisional_internal_score or parsed.internal_score or 2.5
-        row.internal_score = f"{float(score):.3f}"
-        row.sufficiency_confidence = f"{float(parsed.confidence):.4f}"
-        row.rationale_summary = parsed.provisional_score_rationale_summary or parsed.rationale
-        row.insufficient_after_cap = True
-        row.low_confidence_flag = True
-        row.evidence_notes_json = evidence_notes_json_for_row(parsed)
-        confirmation = (
-            "The follow-up limit was reached. You can still continue; the export will flag this practice as "
-            "lower-confidence or capped."
-        )
-        entry = {
-            "at": _utc_timestamp_z(),
-            "is_sufficient": False,
-            "force_complete": True,
-            "allow_confirm": True,
-            "sufficiency_plain": suff_plain,
-            "follow_up_questions": [],
-            "rationale_short": (parsed.rationale or "")[:800],
-            "confirmation_message": confirmation,
-            "cap_warning": confirmation,
-        }
+        entry = _apply_forced_scores(row, parsed)
     else:
-        row.internal_score = None
-        row.rationale_summary = None
-        row.insufficient_after_cap = False
-        row.low_confidence_flag = False
-        row.evidence_notes_json = evidence_notes_json_for_row(parsed)
-        if follow_ups:
-            try:
-                transcript = json.loads(row.follow_up_transcript_json or "[]")
-            except json.JSONDecodeError:
-                transcript = []
-            transcript.append(
-                {
-                    "kind": "ai_followups",
-                    "round": row.follow_up_rounds_used + 1,
-                    "questions": follow_ups,
-                }
-            )
-            row.follow_up_transcript_json = json.dumps(transcript, ensure_ascii=False)
-        entry = {
-            "at": _utc_timestamp_z(),
-            "is_sufficient": False,
-            "force_complete": False,
-            "allow_confirm": False,
-            "sufficiency_plain": suff_plain,
-            "follow_up_questions": follow_ups,
-            "rationale_short": (parsed.rationale or "")[:800],
-            "confirmation_message": None,
-            "cap_warning": None,
-        }
+        entry = _apply_followup_scores(row, parsed, follow_ups)
 
     try:
         hist = json.loads(row.review_history_json or "[]")

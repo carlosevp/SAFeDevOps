@@ -6,7 +6,7 @@ import hashlib
 import hmac
 import secrets
 
-from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
+from itsdangerous import BadSignature, URLSafeTimedSerializer
 from starlette.requests import Request
 
 from app.settings import settings
@@ -44,7 +44,7 @@ def gate_cookie_valid(token: str | None) -> bool:
     try:
         ser.loads(token, max_age=COOKIE_MAX_AGE_SECONDS)
         return True
-    except (BadSignature, SignatureExpired, TypeError, ValueError):
+    except (BadSignature, TypeError, ValueError):
         return False
 
 

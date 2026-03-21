@@ -9,12 +9,12 @@ import { ProgressNav } from "./ProgressNav";
 import { ThemeToggle } from "./ThemeToggle";
 
 type Props = {
-  sessionId: number;
-  initial: SessionFull;
-  onNewSession: () => void;
+  readonly sessionId: number;
+  readonly initial: SessionFull;
+  readonly onNewSession: () => void;
 };
 
-export function AssessmentApp({ sessionId, initial, onNewSession }: Props) {
+export function AssessmentApp({ sessionId, initial, onNewSession }: Readonly<Props>) {
   const [data, setData] = useState<SessionFull>(initial);
   const [partialOpen, setPartialOpen] = useState(false);
   const [partialBusy, setPartialBusy] = useState(false);
@@ -105,9 +105,9 @@ export function AssessmentApp({ sessionId, initial, onNewSession }: Props) {
     <>
       <AppHeader subtitle={subtitle}>{headerActionsInProgress}</AppHeader>
       {exportNotice ? (
-        <div className="success-banner" role="status">
+        <output className="success-banner" aria-live="polite">
           {exportNotice}
-        </div>
+        </output>
       ) : null}
       <PartialExportModal
         open={partialOpen}

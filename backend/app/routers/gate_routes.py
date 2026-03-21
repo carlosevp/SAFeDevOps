@@ -13,7 +13,11 @@ from app.access_gate import (
     request_has_valid_gate_cookie,
 )
 
-router = APIRouter(prefix="/api/auth", tags=["access"])
+router = APIRouter(
+    prefix="/api/auth",
+    tags=["access"],
+    responses={401: {"description": "Unauthorized"}},
+)
 
 
 class GateStatusOut(BaseModel):
@@ -25,7 +29,7 @@ class GateLoginIn(BaseModel):
     password: str = Field(min_length=1, max_length=4096)
 
 
-@router.get("/gate/status", response_model=GateStatusOut)
+@router.get("/gate/status")
 def gate_status(request: Request) -> GateStatusOut:
     enabled = gate_enabled()
     return GateStatusOut(

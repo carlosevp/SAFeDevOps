@@ -97,25 +97,107 @@ def _try_register_dejavu(pdf: ReportPDF, regular: Path, bold: Path) -> bool:
     return True
 
 
+def _reset_pdf_core_fonts(pdf: ReportPDF) -> None:
+    pdf._font_family = "Helvetica"
+    pdf._unicode_font = False
+    pdf._font_size_body = 11
+    pdf._font_size_title = 13
+    pdf._font_size_header = 11
+
+
 def _ensure_dejavu(pdf: ReportPDF) -> None:
     """Use DejaVu from fpdf wheel, or from backend/fonts/, else Helvetica + Latin-1-safe text."""
+    registered = False
     try:
         import fpdf
 
         pkg_font = Path(fpdf.__file__).resolve().parent / "font"
-        if _try_register_dejavu(pdf, pkg_font / "DejaVuSans.ttf", pkg_font / "DejaVuSans-Bold.ttf"):
-            pass
-        elif _try_register_dejavu(
+        registered = _try_register_dejavu(
+            pdf, pkg_font / "DejaVuSans.ttf", pkg_font / "DejaVuSans-Bold.ttf"
+        ) or _try_register_dejavu(
             pdf, _PROJECT_FONT_DIR / "DejaVuSans.ttf", _PROJECT_FONT_DIR / "DejaVuSans-Bold.ttf"
-        ):
-            pass
+        )
     except (OSError, ImportError, TypeError, ValueError, RuntimeError):
-        pdf._font_family = "Helvetica"
-        pdf._unicode_font = False
-        pdf._font_size_body = 11
-        pdf._font_size_title = 13
-        pdf._font_size_header = 11
+        registered = False
+    if not registered:
+        _reset_pdf_core_fonts(pdf)
     pdf.set_font(pdf._font_family, "", pdf._font_size_body)
+
+
+def _followup_lines_for_pdf(row: PracticeResponse) -> list[str] | None:
+    try:
+        transcript = json.loads(row.follow_up_transcript_json or "[]")
+    except json.JSONDecodeError:
+        transcript = []
+    if not transcript:
+        return None
+    lines = ["Follow-up history:"]
+    for item in transcript:
+        k = item.get("kind")
+        if k == "ai_followups":
+            qs = item.get("questions") or []
+            lines.append("  AI follow-up questions: " + "; ".join(str(q) for q in qs))
+        elif k == "user_followup_response":
+            lines.append("  Team follow-up response: " + str(item.get("text", "")))
+    return lines
+
+
+def _evidence_filenames_line(row: PracticeResponse) -> str | None:
+    try:
+        files = json.loads(row.files_json or "[]")
+    except json.JSONDecodeError:
+        files = []
+    if not files:
+        return None
+    fnames = ", ".join(str(f.get("filename", "")) for f in files)
+    return "Evidence files (filenames only; images not embedded in pilot PDF):\n" + fnames
+
+
+def _evidence_notes_block(row: PracticeResponse) -> str | None:
+    try:
+        notes = json.loads(row.evidence_notes_json or "[]")
+    except json.JSONDecodeError:
+        notes = []
+    if not notes:
+        return None
+    return "Evidence notes (from review):\n" + "\n".join(f"- {n}" for n in notes)
+
+
+def _write_practice_section(
+    pdf: ReportPDF,
+    pdef: PracticeDefinition,
+    row: PracticeResponse | None,
+    pmeta: dict[str, Any] | None,
+) -> None:
+    status = (pmeta or {}).get("practice_completion_status", "incomplete")
+    pdf.section_title(pdef.name)
+    if status != "completed":
+        pdf.body_text("STATUS: INCOMPLETE — practice not confirmed for this export. No score assigned.")
+    pdf.body_text("What it evaluates:\n" + (pdef.what_it_evaluates or "").strip())
+
+    narrative = (row.narrative if row else "") or ""
+    pdf.body_text("Team narrative:\n" + (narrative.strip() or "(none)"))
+
+    if not row:
+        pdf.ln(2)
+        return
+
+    fu_lines = _followup_lines_for_pdf(row)
+    if fu_lines:
+        pdf.body_text("\n".join(fu_lines))
+
+    files_line = _evidence_filenames_line(row)
+    if files_line:
+        pdf.body_text(files_line)
+
+    if status == "completed":
+        notes_block = _evidence_notes_block(row)
+        if notes_block:
+            pdf.body_text(notes_block)
+        if row.rationale_summary:
+            pdf.body_text("Score rationale (for reviewer):\n" + (row.rationale_summary or "").strip())
+
+    pdf.ln(2)
 
 
 def build_pdf_report(
@@ -162,6 +244,7 @@ def build_pdf_report(
     )
 
     current_area = ""
+    practice_meta = {p.get("practice_key"): p for p in results.get("practices", [])}
     for pdef in definition.practices:
         if pdef.pipeline_area_name != current_area:
             current_area = pdef.pipeline_area_name
@@ -169,50 +252,8 @@ def build_pdf_report(
             pdf.section_title(current_area)
 
         row = responses.get(pdef.key)
-        pmeta = next((p for p in results.get("practices", []) if p.get("practice_key") == pdef.key), None)
-        status = (pmeta or {}).get("practice_completion_status", "incomplete")
-        pdf.section_title(pdef.name)
-        if status != "completed":
-            pdf.body_text("STATUS: INCOMPLETE — practice not confirmed for this export. No score assigned.")
-        pdf.body_text("What it evaluates:\n" + (pdef.what_it_evaluates or "").strip())
-
-        narrative = (row.narrative if row else "") or ""
-        pdf.body_text("Team narrative:\n" + (narrative.strip() or "(none)"))
-
-        if row:
-            try:
-                transcript = json.loads(row.follow_up_transcript_json or "[]")
-            except json.JSONDecodeError:
-                transcript = []
-            if transcript:
-                lines = ["Follow-up history:"]
-                for item in transcript:
-                    k = item.get("kind")
-                    if k == "ai_followups":
-                        qs = item.get("questions") or []
-                        lines.append("  AI follow-up questions: " + "; ".join(str(q) for q in qs))
-                    elif k == "user_followup_response":
-                        lines.append("  Team follow-up response: " + str(item.get("text", "")))
-                pdf.body_text("\n".join(lines))
-
-            try:
-                files = json.loads(row.files_json or "[]")
-            except json.JSONDecodeError:
-                files = []
-            if files:
-                fnames = ", ".join(str(f.get("filename", "")) for f in files)
-                pdf.body_text("Evidence files (filenames only; images not embedded in pilot PDF):\n" + fnames)
-
-            try:
-                notes = json.loads(row.evidence_notes_json or "[]")
-            except json.JSONDecodeError:
-                notes = []
-            if notes and status == "completed":
-                pdf.body_text("Evidence notes (from review):\n" + "\n".join(f"- {n}" for n in notes))
-            if status == "completed" and row.rationale_summary:
-                pdf.body_text("Score rationale (for reviewer):\n" + (row.rationale_summary or "").strip())
-
-        pdf.ln(2)
+        pmeta = practice_meta.get(pdef.key)
+        _write_practice_section(pdf, pdef, row, pmeta)
 
     raw = pdf.output(dest="S")
     if isinstance(raw, (bytes, bytearray)):

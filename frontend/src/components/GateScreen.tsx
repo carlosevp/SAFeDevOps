@@ -2,9 +2,9 @@ import { FormEvent, useState } from "react";
 import { gateLogin } from "../api";
 import { ThemeToggle } from "./ThemeToggle";
 
-type Props = { onSuccess: () => void };
+type Props = { readonly onSuccess: () => void };
 
-export function GateScreen({ onSuccess }: Props) {
+export function GateScreen({ onSuccess }: Readonly<Props>) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);

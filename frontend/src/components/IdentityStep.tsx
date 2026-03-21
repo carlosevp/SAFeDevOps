@@ -1,10 +1,10 @@
 import { useState } from "react";
 
 type Props = {
-  onStart: (body: { name: string; email: string; team_name: string }) => Promise<void>;
+  readonly onStart: (body: { name: string; email: string; team_name: string }) => Promise<void>;
 };
 
-export function IdentityStep({ onStart }: Props) {
+export function IdentityStep({ onStart }: Readonly<Props>) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [teamName, setTeamName] = useState("");

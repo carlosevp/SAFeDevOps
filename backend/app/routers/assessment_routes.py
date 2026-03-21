@@ -4,12 +4,13 @@ import json
 import re
 import uuid
 from pathlib import Path
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
-from app.assessment_loader import PracticeDefinition, get_effective_thresholds
+from app.assessment_loader import AssessmentDefinition, PracticeDefinition, get_effective_thresholds
 from app.database import get_db
 from app.deps import get_assessment_definition
 from app.models import AssessmentSession, PracticeResponse
@@ -33,7 +34,20 @@ from app.services.export_builder import build_pdf_report, load_responses_map, wr
 from app.services.openai_review import openai_review_service
 from app.settings import settings
 
-router = APIRouter(prefix="/api", tags=["assessment"])
+router = APIRouter(
+    prefix="/api",
+    tags=["assessment"],
+    responses={
+        400: {"description": "Bad request"},
+        404: {"description": "Not found"},
+        503: {"description": "Service unavailable"},
+    },
+)
+
+DbSession = Annotated[Session, Depends(get_db)]
+AssessmentDep = Annotated[AssessmentDefinition, Depends(get_assessment_definition)]
+
+UNKNOWN_PRACTICE_DETAIL = "Unknown practice"
 
 NEUTRAL_CONFIRM = "You can continue to the next practice when ready."
 NEUTRAL_CAP = "You have reached the follow-up limit. You may still continue."
@@ -269,7 +283,7 @@ def create_session(body: SessionCreateIn, db: Session = Depends(get_db), definit
 
 
 @router.get("/sessions/{session_id}", response_model=SessionFullOut)
-def get_session(session_id: int, db: Session = Depends(get_db), definition=Depends(get_assessment_definition)):
+def get_session(session_id: int, db: DbSession, definition: AssessmentDep):
     s = _get_session(db, session_id)
     return _session_full(db, s, definition)
 
@@ -279,13 +293,13 @@ def save_draft(
     session_id: int,
     practice_key: str,
     body: SavePracticeIn,
-    db: Session = Depends(get_db),
-    definition=Depends(get_assessment_definition),
+    db: DbSession,
+    definition: AssessmentDep,
 ):
     s = _get_session(db, session_id)
     pdef = definition.practice_by_key(practice_key)
     if not pdef:
-        raise HTTPException(status_code=404, detail="Unknown practice")
+        raise HTTPException(status_code=404, detail=UNKNOWN_PRACTICE_DETAIL)
     row = _get_or_create_practice(db, s, practice_key)
     row.narrative = body.narrative or ""
     db.commit()
@@ -296,14 +310,14 @@ def save_draft(
 async def upload_file(
     session_id: int,
     practice_key: str,
-    db: Session = Depends(get_db),
-    definition=Depends(get_assessment_definition),
+    db: DbSession,
+    definition: AssessmentDep,
     file: UploadFile = File(...),
 ):
     s = _get_session(db, session_id)
     pdef = definition.practice_by_key(practice_key)
     if not pdef:
-        raise HTTPException(status_code=404, detail="Unknown practice")
+        raise HTTPException(status_code=404, detail=UNKNOWN_PRACTICE_DETAIL)
 
     row = _get_or_create_practice(db, s, practice_key)
     suffix = Path(file.filename or "").suffix.lower()
@@ -344,8 +358,8 @@ def delete_file(
     session_id: int,
     practice_key: str,
     file_id: str,
-    db: Session = Depends(get_db),
-    definition=Depends(get_assessment_definition),
+    db: DbSession,
+    definition: AssessmentDep,
 ):
     s = _get_session(db, session_id)
     row = _get_or_create_practice(db, s, practice_key)
@@ -400,13 +414,13 @@ def _persist_review_result(
 def run_review(
     session_id: int,
     practice_key: str,
-    db: Session = Depends(get_db),
-    definition=Depends(get_assessment_definition),
+    db: DbSession,
+    definition: AssessmentDep,
 ):
     s = _get_session(db, session_id)
     pdef = definition.practice_by_key(practice_key)
     if not pdef:
-        raise HTTPException(status_code=404, detail="Unknown practice")
+        raise HTTPException(status_code=404, detail=UNKNOWN_PRACTICE_DETAIL)
     row = _get_or_create_practice(db, s, practice_key)
     if not (row.narrative or "").strip():
         raise HTTPException(status_code=400, detail="Add a response before reviewing.")
@@ -445,13 +459,13 @@ def submit_followup(
     session_id: int,
     practice_key: str,
     body: FollowUpAnswerIn,
-    db: Session = Depends(get_db),
-    definition=Depends(get_assessment_definition),
+    db: DbSession,
+    definition: AssessmentDep,
 ):
     s = _get_session(db, session_id)
     pdef = definition.practice_by_key(practice_key)
     if not pdef:
-        raise HTTPException(status_code=404, detail="Unknown practice")
+        raise HTTPException(status_code=404, detail=UNKNOWN_PRACTICE_DETAIL)
     row = _get_or_create_practice(db, s, practice_key)
 
     _, cap = get_effective_thresholds(definition, pdef)
@@ -502,13 +516,13 @@ def confirm_practice(
     session_id: int,
     practice_key: str,
     body: ConfirmPracticeIn,
-    db: Session = Depends(get_db),
-    definition=Depends(get_assessment_definition),
+    db: DbSession,
+    definition: AssessmentDep,
 ):
     s = _get_session(db, session_id)
     pdef = definition.practice_by_key(practice_key)
     if not pdef:
-        raise HTTPException(status_code=404, detail="Unknown practice")
+        raise HTTPException(status_code=404, detail=UNKNOWN_PRACTICE_DETAIL)
     row = _get_or_create_practice(db, s, practice_key)
 
     try:
@@ -562,9 +576,9 @@ def navigate(session_id: int, index: int, db: Session = Depends(get_db), definit
 @router.get("/sessions/{session_id}/summary-json")
 def summary_json(
     session_id: int,
+    db: DbSession,
+    definition: AssessmentDep,
     allow_incomplete: bool = False,
-    db: Session = Depends(get_db),
-    definition=Depends(get_assessment_definition),
 ):
     s = _get_session(db, session_id)
     keys = _ordered_keys(definition)
@@ -616,8 +630,8 @@ def export_zip(session_id: int, db: Session = Depends(get_db), definition=Depend
 def export_partial_zip(
     session_id: int,
     body: PartialExportIn,
-    db: Session = Depends(get_db),
-    definition=Depends(get_assessment_definition),
+    db: DbSession,
+    definition: AssessmentDep,
 ):
     if not body.confirm_partial:
         raise HTTPException(

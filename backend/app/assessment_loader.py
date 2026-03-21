@@ -69,6 +69,51 @@ class AssessmentDefinition:
         return "\n".join(lines)
 
 
+def _parse_rubric(rk: str, rv: dict[str, Any]) -> RubricDefinition:
+    anchors: list[RubricAnchor] = []
+    for a in rv.get("anchors") or []:
+        anchors.append(
+            RubricAnchor(
+                score=float(a["score"]),
+                name=str(a.get("name", "")),
+                summary=str(a.get("summary", "")),
+            )
+        )
+    return RubricDefinition(
+        key=str(rk),
+        name=str(rv.get("name", rk)),
+        anchors=anchors,
+    )
+
+
+def _ai_review_config(air: dict[str, Any]) -> AIReviewConfig:
+    return AIReviewConfig(
+        rubric_ref=str(air.get("rubric_ref", "safedevops_default")),
+        sufficiency_confidence_threshold=(
+            float(air["sufficiency_confidence_threshold"])
+            if air.get("sufficiency_confidence_threshold") is not None
+            else None
+        ),
+        follow_up_cap=int(air["follow_up_cap"]) if air.get("follow_up_cap") is not None else None,
+    )
+
+
+def _practice_from_yaml(pr: dict[str, Any], area_key: str, area_name: str, order: int) -> PracticeDefinition:
+    air = pr.get("ai_review") or {}
+    return PracticeDefinition(
+        key=str(pr["key"]),
+        pipeline_area_key=area_key,
+        pipeline_area_name=area_name,
+        name=str(pr["name"]),
+        what_it_evaluates=str(pr.get("what_it_evaluates", "")).strip(),
+        enterprise_examples=[str(x) for x in (pr.get("enterprise_examples") or [])],
+        user_prompt=str(pr.get("user_prompt", "")).strip(),
+        evidence_encouragement=str(pr.get("evidence_encouragement", "")).strip(),
+        ai_review=_ai_review_config(air),
+        order_index=order,
+    )
+
+
 def load_assessment_from_yaml(path: Path) -> AssessmentDefinition:
     raw = yaml.safe_load(path.read_text(encoding="utf-8"))
     if not isinstance(raw, dict):
@@ -80,20 +125,8 @@ def load_assessment_from_yaml(path: Path) -> AssessmentDefinition:
 
     rubrics: dict[str, RubricDefinition] = {}
     for rk, rv in (raw.get("rubrics") or {}).items():
-        anchors: list[RubricAnchor] = []
-        for a in rv.get("anchors") or []:
-            anchors.append(
-                RubricAnchor(
-                    score=float(a["score"]),
-                    name=str(a.get("name", "")),
-                    summary=str(a.get("summary", "")),
-                )
-            )
-        rubrics[str(rk)] = RubricDefinition(
-            key=str(rk),
-            name=str(rv.get("name", rk)),
-            anchors=anchors,
-        )
+        if isinstance(rv, dict):
+            rubrics[str(rk)] = _parse_rubric(str(rk), rv)
 
     practices: list[PracticeDefinition] = []
     order = 0
@@ -101,30 +134,7 @@ def load_assessment_from_yaml(path: Path) -> AssessmentDefinition:
         area_key = str(area.get("key", ""))
         area_name = str(area.get("name", area_key))
         for pr in area.get("practices") or []:
-            air = pr.get("ai_review") or {}
-            cfg = AIReviewConfig(
-                rubric_ref=str(air.get("rubric_ref", "safedevops_default")),
-                sufficiency_confidence_threshold=(
-                    float(air["sufficiency_confidence_threshold"])
-                    if air.get("sufficiency_confidence_threshold") is not None
-                    else None
-                ),
-                follow_up_cap=int(air["follow_up_cap"]) if air.get("follow_up_cap") is not None else None,
-            )
-            practices.append(
-                PracticeDefinition(
-                    key=str(pr["key"]),
-                    pipeline_area_key=area_key,
-                    pipeline_area_name=area_name,
-                    name=str(pr["name"]),
-                    what_it_evaluates=str(pr.get("what_it_evaluates", "")).strip(),
-                    enterprise_examples=[str(x) for x in (pr.get("enterprise_examples") or [])],
-                    user_prompt=str(pr.get("user_prompt", "")).strip(),
-                    evidence_encouragement=str(pr.get("evidence_encouragement", "")).strip(),
-                    ai_review=cfg,
-                    order_index=order,
-                )
-            )
+            practices.append(_practice_from_yaml(pr, area_key, area_name, order))
             order += 1
 
     return AssessmentDefinition(

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 type Props = {
   open: boolean;
@@ -9,39 +9,42 @@ type Props = {
   busy: boolean;
 };
 
-export function PartialExportModal({ open, confirmedCount, total, onCancel, onConfirm, busy }: Props) {
+export function PartialExportModal({ open, confirmedCount, total, onCancel, onConfirm, busy }: Readonly<Props>) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const el = dialogRef.current;
+    if (!el) return;
+    if (open) {
+      if (!el.open) el.showModal();
+    } else {
+      el.close();
+    }
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape" && !busy) onCancel();
     }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    globalThis.addEventListener("keydown", onKey);
+    return () => globalThis.removeEventListener("keydown", onKey);
   }, [open, busy, onCancel]);
 
-  if (!open) return null;
-
   return (
-    <div
-      className="modal-backdrop"
-      role="button"
-      tabIndex={0}
-      aria-label="Close dialog"
-      onMouseDown={onCancel}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onCancel();
-        }
+    <dialog
+      ref={dialogRef}
+      className="partial-export-dialog"
+      aria-labelledby="partial-export-title"
+      onCancel={(e) => {
+        if (busy) e.preventDefault();
+        else onCancel();
+      }}
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget && !busy) onCancel();
       }}
     >
-      <div
-        className="modal-dialog card"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="partial-export-title"
-        onMouseDown={(e) => e.stopPropagation()}
-      >
+      <div className="modal-dialog card" onMouseDown={(e) => e.stopPropagation()}>
         <h2 id="partial-export-title" className="modal-title">
           Finish early and export?
         </h2>
@@ -53,7 +56,9 @@ export function PartialExportModal({ open, confirmedCount, total, onCancel, onCo
           <li>
             <strong>{confirmedCount}</strong> of <strong>{total}</strong> practices confirmed so far.
           </li>
-          <li>The ZIP includes <code>report.pdf</code> and <code>results.json</code> with partial-completion metadata.</li>
+          <li>
+            The ZIP includes <code>report.pdf</code> and <code>results.json</code> with partial-completion metadata.
+          </li>
           <li>You can keep working in this session after exporting if you prefer—this does not end the session.</li>
         </ul>
         <div className="modal-actions row">
@@ -65,6 +70,6 @@ export function PartialExportModal({ open, confirmedCount, total, onCancel, onCo
           </button>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }

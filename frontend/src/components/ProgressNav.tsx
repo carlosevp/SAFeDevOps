@@ -2,11 +2,11 @@ import { useMemo } from "react";
 import type { PracticeConfig, PracticeState } from "../types";
 
 type Props = {
-  practices: PracticeConfig[];
-  orderedKeys: string[];
-  stateByKey: Record<string, PracticeState>;
-  currentIndex: number;
-  onSelect: (index: number) => void;
+  readonly practices: PracticeConfig[];
+  readonly orderedKeys: string[];
+  readonly stateByKey: Record<string, PracticeState>;
+  readonly currentIndex: number;
+  readonly onSelect: (index: number) => void;
 };
 
 function needsFollowUp(st: PracticeState | undefined, done: boolean): boolean {
@@ -23,7 +23,14 @@ function statusIcon(current: boolean, done: boolean, needsFu: boolean, inProgres
   return "○";
 }
 
-export function ProgressNav({ practices, orderedKeys, stateByKey, currentIndex, onSelect }: Props) {
+function stepSubtitle(done: boolean, needsFu: boolean, inProg: boolean): string {
+  if (done) return "Completed";
+  if (needsFu) return "Needs follow-up";
+  if (inProg) return "In progress";
+  return "Not started";
+}
+
+export function ProgressNav({ practices, orderedKeys, stateByKey, currentIndex, onSelect }: Readonly<Props>) {
   const confirmed = orderedKeys.filter((k) => stateByKey[k]?.user_confirmed).length;
   const total = orderedKeys.length;
   const pct = total ? Math.round((100 * confirmed) / total) : 0;
@@ -97,15 +104,7 @@ export function ProgressNav({ practices, orderedKeys, stateByKey, currentIndex, 
                 </span>
                 <span className="practice-title-wrap">
                   <span className="practice-title">{cfg.name}</span>
-                  <span className="practice-title-meta">
-                    {done
-                      ? "Completed"
-                      : nf
-                        ? "Needs follow-up"
-                        : inProg
-                          ? "In progress"
-                          : "Not started"}
-                  </span>
+                  <span className="practice-title-meta">{stepSubtitle(done, nf, inProg)}</span>
                 </span>
               </button>
             </li>

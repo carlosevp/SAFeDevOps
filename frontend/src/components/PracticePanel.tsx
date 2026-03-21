@@ -9,26 +9,16 @@ import {
   submitFollowup,
   uploadFile,
 } from "../api";
+import { fileExt, formatBytes, saveStatusMessage } from "./practicePanelUtils";
 
 type Props = {
-  sessionId: number;
-  data: SessionFull;
-  practice: PracticeConfig;
-  practiceState: PracticeState;
-  onRefresh: (s: SessionFull) => void;
-  onOpenPartialExport: () => void;
+  readonly sessionId: number;
+  readonly data: SessionFull;
+  readonly practice: PracticeConfig;
+  readonly practiceState: PracticeState;
+  readonly onRefresh: (s: SessionFull) => void;
+  readonly onOpenPartialExport: () => void;
 };
-
-function fileExt(filename: string): string {
-  const i = filename.lastIndexOf(".");
-  return i >= 0 ? filename.slice(i + 1).toUpperCase() : "FILE";
-}
-
-function formatBytes(n: number): string {
-  if (n < 1024) return `${n} B`;
-  if (n < 1024 * 1024) return `${Math.round(n / 1024)} KB`;
-  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 export function PracticePanel({
   sessionId,
@@ -37,7 +27,7 @@ export function PracticePanel({
   practiceState,
   onRefresh,
   onOpenPartialExport,
-}: Props) {
+}: Readonly<Props>) {
   const [narrative, setNarrative] = useState(practiceState.narrative);
   const [saving, setSaving] = useState(false);
   const [reviewBusy, setReviewBusy] = useState(false);
@@ -93,15 +83,12 @@ export function PracticePanel({
   }, [narrative, practice.key, practiceState.narrative, sessionId, onRefresh]);
 
   const dirty = narrative !== practiceState.narrative;
-  const saveStatus = practiceState.user_confirmed
-    ? "Locked after confirmation."
-    : saving
-      ? "Saving draft…"
-      : dirty
-        ? "Unsaved changes — will autosave shortly."
-        : lastSavedAt
-          ? "All changes saved."
-          : "Draft autosaves as you type.";
+  const saveStatus = saveStatusMessage(
+    practiceState.user_confirmed,
+    saving,
+    dirty,
+    lastSavedAt
+  );
 
   const MAX_MB = 15;
 
@@ -152,12 +139,12 @@ export function PracticePanel({
     try {
       await saveDraft(sessionId, practice.key, narrative);
       const r = await runReview(sessionId, practice.key);
-      if (!r.ok) {
-        setLocalReview(r);
-        setError(r.error || "Review failed");
-      } else {
+      if (r.ok) {
         setLocalReview(null);
         setError(null);
+      } else {
+        setLocalReview(r);
+        setError(r.error || "Review failed");
       }
       const refreshed = await getSession(sessionId);
       onRefresh(refreshed);
@@ -217,9 +204,7 @@ export function PracticePanel({
   }
 
   const displayQuestions =
-    localReview && localReview.follow_up_questions?.length
-      ? localReview.follow_up_questions
-      : practiceState.follow_up_questions;
+    localReview?.follow_up_questions?.length ? localReview.follow_up_questions : practiceState.follow_up_questions;
   const displaySufficiency = localReview?.sufficiency_plain || practiceState.sufficiency_plain;
   const displayConfirm = localReview?.confirmation_message || practiceState.confirmation_message;
   const displayCap = localReview?.cap_warning || practiceState.cap_warning;
@@ -318,8 +303,9 @@ export function PracticePanel({
           Screenshots or PDFs help the reviewer ground feedback in real artifacts. Files stay with this session for
           export; remove anything sensitive before uploading.
         </p>
-        <div
+        <section
           className={`dropzone${dragOver ? " dropzone-active" : ""}`}
+          aria-label="Upload or drop evidence files"
           onDragOver={(e) => {
             e.preventDefault();
             if (!practiceState.user_confirmed) setDragOver(true);
@@ -362,15 +348,15 @@ export function PracticePanel({
                     {formatBytes(f.size_bytes)}
                   </span>
                 </span>
-                {!practiceState.user_confirmed ? (
+                {practiceState.user_confirmed ? null : (
                   <button type="button" className="btn btn-ghost btn-compact" onClick={() => onDeleteFile(f.id)}>
                     Remove
                   </button>
-                ) : null}
+                )}
               </li>
             ))}
           </ul>
-        </div>
+        </section>
       </section>
 
       {error ? (
@@ -379,7 +365,7 @@ export function PracticePanel({
         </div>
       ) : null}
 
-      {displayQuestions.length > 0 && !practiceState.user_confirmed ? (
+      {practiceState.user_confirmed ? null : displayQuestions.length > 0 ? (
         <section className="section-block panel-followup" aria-labelledby="followup-heading">
           <div className="panel-followup-round" id="followup-heading">
             Follow-up {followUpRoundLabel != null ? `(round ${followUpRoundLabel} of ${cap})` : ""}
@@ -433,7 +419,7 @@ export function PracticePanel({
         </section>
       ) : null}
 
-      {showEval && !practiceState.user_confirmed && (displaySufficiency || displayConfirm || displayRationale) ? (
+      {practiceState.user_confirmed ? null : showEval && (displaySufficiency || displayConfirm || displayRationale) ? (
         <div
           className={sufficiencyOk ? "notice ok" : "notice"}
           style={{ marginTop: "1rem" }}
@@ -500,8 +486,8 @@ export function PracticePanel({
         </div>
       ) : null}
 
-      {!practiceState.user_confirmed ? (
-        <div className="practice-action-bar" role="region" aria-label="Practice actions">
+      {practiceState.user_confirmed ? null : (
+        <section className="practice-action-bar" aria-label="Practice actions">
           <div className="practice-action-primary">
             <button type="button" className="btn btn-primary" onClick={() => void onReview()} disabled={reviewBusy}>
               {reviewBusy ? "Reviewing…" : "Review this response"}
@@ -517,8 +503,8 @@ export function PracticePanel({
           <span className="subtle" style={{ fontSize: "0.82rem", maxWidth: "28ch" }}>
             Next practice: use the progress list when this one is confirmed.
           </span>
-        </div>
-      ) : null}
+        </section>
+      )}
     </div>
   );
 }

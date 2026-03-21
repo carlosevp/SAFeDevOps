@@ -16,6 +16,8 @@ from app.settings import settings
 
 logger = logging.getLogger(__name__)
 
+MIME_JPEG = "image/jpeg"
+
 
 class AIReviewResult(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -70,13 +72,13 @@ def _read_pdf_excerpt(path: Path, max_chars: int = 14000) -> str:
 
 def _image_mime(path: Path) -> str:
     mime, _ = mimetypes.guess_type(str(path))
-    if mime in ("image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"):
-        return "image/jpeg" if mime == "image/jpg" else mime
+    if mime in ("image/png", MIME_JPEG, "image/jpg", "image/webp", "image/gif"):
+        return MIME_JPEG if mime == "image/jpg" else mime
     ext = path.suffix.lower()
     if ext == ".png":
         return "image/png"
     if ext in (".jpg", ".jpeg"):
-        return "image/jpeg"
+        return MIME_JPEG
     if ext == ".webp":
         return "image/webp"
     if ext == ".gif":
@@ -216,30 +218,13 @@ class OpenAIReviewService:
             logger.warning("openai_schema_validate_failed")
             raise RuntimeError("AI response failed validation.") from e
 
-        if parsed.is_sufficient and parsed.confidence < conf_thr:
-            parsed.is_sufficient = False
-            parsed.rationale = (
-                parsed.rationale
-                + " (Confidence was below the sufficiency threshold; more detail is needed.)"
-            ).strip()
-
-        at_cap = follow_up_rounds_used >= cap
-        if at_cap and not parsed.is_sufficient:
-            parsed.force_complete = True
-            if parsed.provisional_internal_score is None and parsed.internal_score is not None:
-                parsed.provisional_internal_score = parsed.internal_score
-            if parsed.provisional_score_rationale_summary is None and parsed.score_rationale_summary:
-                parsed.provisional_score_rationale_summary = parsed.score_rationale_summary
-            parsed.follow_up_questions = []
-        elif not parsed.is_sufficient and not at_cap:
-            if not parsed.follow_up_questions:
-                fallback = definition.defaults.get("follow_up_fallback_question")
-                parsed.follow_up_questions = [
-                    str(fallback).strip()
-                    if fallback
-                    else "Please add more specific detail so the assessment can be scored confidently."
-                ]
-
+        self._apply_threshold_and_cap(
+            parsed,
+            conf_thr=conf_thr,
+            follow_up_rounds_used=follow_up_rounds_used,
+            cap=cap,
+            definition=definition,
+        )
         return parsed
 
 

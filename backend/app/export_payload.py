@@ -7,7 +7,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from typing import Any
 
-from app.assessment_loader import AssessmentDefinition
+from app.assessment_loader import AssessmentDefinition, PracticeDefinition
 from app.models import AssessmentSession, PracticeResponse
 
 
@@ -44,6 +44,91 @@ def practice_progress_detail(row: PracticeResponse | None, practice_confirmed: b
     return _practice_row_status(row, practice_confirmed)
 
 
+def _parse_float_field(value: str | None) -> float | None:
+    if not value:
+        return None
+    try:
+        return float(value)
+    except ValueError:
+        return None
+
+
+def _files_meta_count(row: PracticeResponse) -> tuple[list[Any], bool]:
+    try:
+        meta = json.loads(row.files_json or "[]")
+    except json.JSONDecodeError:
+        meta = []
+    return meta, len(meta) > 0
+
+
+def _metrics_confirmed(row: PracticeResponse) -> dict[str, Any]:
+    score_val = _parse_float_field(row.internal_score)
+    conf_val = _parse_float_field(row.sufficiency_confidence)
+    _, evidence_flag = _files_meta_count(row)
+    fu_count = int(row.follow_up_rounds_used or 0)
+    return {
+        "score_val": score_val,
+        "conf_val": conf_val,
+        "rationale": row.rationale_summary,
+        "evidence_flag": evidence_flag,
+        "fu_count": fu_count,
+        "insuff": bool(row.insufficient_after_cap),
+        "low_conf": bool(row.low_confidence_flag),
+    }
+
+
+def _metrics_incomplete(row: PracticeResponse) -> dict[str, Any]:
+    _, evidence_flag = _files_meta_count(row)
+    fu_count = int(row.follow_up_rounds_used or 0)
+    return {
+        "score_val": None,
+        "conf_val": None,
+        "rationale": None,
+        "evidence_flag": evidence_flag,
+        "fu_count": fu_count,
+        "insuff": False,
+        "low_conf": False,
+    }
+
+
+def _one_practice_score_entry(
+    pdef: PracticeDefinition,
+    row: PracticeResponse | None,
+    practice_confirmed: bool,
+    row_status: str,
+) -> dict[str, Any]:
+    if practice_confirmed and row:
+        m = _metrics_confirmed(row)
+    elif row:
+        m = _metrics_incomplete(row)
+    else:
+        m = {
+            "score_val": None,
+            "conf_val": None,
+            "rationale": None,
+            "evidence_flag": False,
+            "fu_count": 0,
+            "insuff": False,
+            "low_conf": False,
+        }
+
+    return {
+        "practice_key": pdef.key,
+        "practice_name": pdef.name,
+        "pipeline_area": pdef.pipeline_area_name,
+        "pipeline_area_key": pdef.pipeline_area_key,
+        "practice_completion_status": "completed" if practice_confirmed else "incomplete",
+        "progress_detail": row_status,
+        "score": m["score_val"],
+        "sufficiency_confidence": m["conf_val"],
+        "rationale_summary": m["rationale"],
+        "evidence_files_present": m["evidence_flag"],
+        "follow_up_rounds_used": m["fu_count"],
+        "insufficient_after_cap": m["insuff"] if practice_confirmed else False,
+        "low_confidence_flag": m["low_conf"] if practice_confirmed else False,
+    }
+
+
 def build_results_payload(
     definition: AssessmentDefinition,
     session: AssessmentSession,
@@ -68,68 +153,19 @@ def build_results_payload(
         row = responses.get(pdef.key)
         practice_confirmed = bool(row and row.user_confirmed)
         row_status = _practice_row_status(row, practice_confirmed)
+        practice_scores.append(_one_practice_score_entry(pdef, row, practice_confirmed, row_status))
 
-        score_val: float | None = None
-        conf_val: float | None = None
-        rationale = None
-        evidence_flag = False
-        fu_count = 0
-        insuff = False
-        low_conf = False
-
+        area = pdef.pipeline_area_name
         if practice_confirmed and row:
-            if row.internal_score:
-                try:
-                    score_val = float(row.internal_score)
-                except ValueError:
-                    score_val = None
-            if row.sufficiency_confidence:
-                try:
-                    conf_val = float(row.sufficiency_confidence)
-                except ValueError:
-                    conf_val = None
-            rationale = row.rationale_summary
-            try:
-                meta = json.loads(row.files_json or "[]")
-            except json.JSONDecodeError:
-                meta = []
-            evidence_flag = len(meta) > 0
-            fu_count = int(row.follow_up_rounds_used or 0)
-            insuff = bool(row.insufficient_after_cap)
-            low_conf = bool(row.low_confidence_flag)
-            if score_val is not None:
-                domain_scores[pdef.pipeline_area_name].append(score_val)
-                all_scores.append(score_val)
-            if conf_val is not None:
-                domain_confs[pdef.pipeline_area_name].append(conf_val)
-            domain_completed[pdef.pipeline_area_name] += 1
+            m = _metrics_confirmed(row)
+            if m["score_val"] is not None:
+                domain_scores[area].append(m["score_val"])
+                all_scores.append(m["score_val"])
+            if m["conf_val"] is not None:
+                domain_confs[area].append(m["conf_val"])
+            domain_completed[area] += 1
         else:
-            if row:
-                try:
-                    meta = json.loads(row.files_json or "[]")
-                except json.JSONDecodeError:
-                    meta = []
-                evidence_flag = len(meta) > 0
-                fu_count = int(row.follow_up_rounds_used or 0)
-            domain_incomplete[pdef.pipeline_area_name] += 1
-
-        practice_scores.append(
-            {
-                "practice_key": pdef.key,
-                "practice_name": pdef.name,
-                "pipeline_area": pdef.pipeline_area_name,
-                "pipeline_area_key": pdef.pipeline_area_key,
-                "practice_completion_status": "completed" if practice_confirmed else "incomplete",
-                "progress_detail": row_status,
-                "score": score_val,
-                "sufficiency_confidence": conf_val,
-                "rationale_summary": rationale,
-                "evidence_files_present": evidence_flag,
-                "follow_up_rounds_used": fu_count,
-                "insufficient_after_cap": insuff if practice_confirmed else False,
-                "low_confidence_flag": low_conf if practice_confirmed else False,
-            }
-        )
+            domain_incomplete[area] += 1
 
     rollup: dict[str, Any] = {}
     all_areas = {p.pipeline_area_name for p in definition.practices}

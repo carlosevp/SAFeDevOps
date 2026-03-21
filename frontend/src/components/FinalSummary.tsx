@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { SessionFull } from "../types";
 import { downloadExport } from "../api";
 import { apiUrl } from "../apiBase";
@@ -39,13 +39,31 @@ type SummaryJson = {
   }>;
 };
 
+type DomainRollupRow = SummaryJson["domain_rollups"][string];
+
+function domainIncompleteNote(r: DomainRollupRow): ReactNode {
+  const n = r.practices_incomplete_or_unconfirmed;
+  if (n == null || n <= 0) return null;
+  return <span className="subtle"> ({n} incomplete in domain)</span>;
+}
+
+function domainCountNote(r: DomainRollupRow): ReactNode {
+  if (r.practice_count != null) {
+    return <span className="subtle"> · {r.practice_count} practices</span>;
+  }
+  if (r.practices_scored_count != null) {
+    return <span className="subtle"> · {r.practices_scored_count} scored</span>;
+  }
+  return null;
+}
+
 type Props = {
-  sessionId: number;
-  data: SessionFull;
-  onNewSession: () => void;
+  readonly sessionId: number;
+  readonly data: SessionFull;
+  readonly onNewSession: () => void;
 };
 
-export function FinalSummary({ sessionId, data, onNewSession }: Props) {
+export function FinalSummary({ sessionId, data, onNewSession }: Readonly<Props>) {
   const [summary, setSummary] = useState<SummaryJson | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
@@ -120,7 +138,7 @@ export function FinalSummary({ sessionId, data, onNewSession }: Props) {
           <p>
             Overall average score: <strong>{summary.overall_score ?? "n/a"}</strong> (1.0–5.0 scale, confirmed
             practices only)
-            {summary.overall_confidence != null && (
+            {summary.overall_confidence == null ? null : (
               <span className="subtle"> · confidence {summary.overall_confidence.toFixed(2)}</span>
             )}
           </p>
@@ -130,15 +148,9 @@ export function FinalSummary({ sessionId, data, onNewSession }: Props) {
             {Object.entries(summary.domain_rollups).map(([area, r]) => (
               <li key={area}>
                 <strong>{area}</strong>: average {r.average_score ?? "n/a"}
-                {r.practices_incomplete_or_unconfirmed != null && r.practices_incomplete_or_unconfirmed > 0 ? (
-                  <span className="subtle"> ({r.practices_incomplete_or_unconfirmed} incomplete in domain)</span>
-                ) : null}
-                {r.practice_count != null ? (
-                  <span className="subtle"> · {r.practice_count} practices</span>
-                ) : r.practices_scored_count != null ? (
-                  <span className="subtle"> · {r.practices_scored_count} scored</span>
-                ) : null}
-                {r.average_confidence != null && (
+                {domainIncompleteNote(r)}
+                {domainCountNote(r)}
+                {r.average_confidence == null ? null : (
                   <span className="subtle"> (confidence {r.average_confidence.toFixed(2)})</span>
                 )}
               </li>
@@ -157,8 +169,8 @@ export function FinalSummary({ sessionId, data, onNewSession }: Props) {
             ))}
           </ul>
         </>
-      ) : (
-        !error && <p className="subtle">Loading summary…</p>
+      ) : error ? null : (
+        <p className="subtle">Loading summary…</p>
       )}
 
       <div className="row" style={{ marginTop: "1.35rem", gap: "0.65rem" }}>
