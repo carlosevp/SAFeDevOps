@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { createSession } from "./api";
+import { apiUrl } from "./apiBase";
 import type { SessionFull } from "./types";
 import { AppHeader } from "./components/AppHeader";
 import { AssessmentApp } from "./components/AssessmentApp";
@@ -19,7 +20,7 @@ export default function App() {
     if (!Number.isFinite(id)) return;
     (async () => {
       try {
-        const res = await fetch(`/api/sessions/${id}`);
+        const res = await fetch(apiUrl(`/api/sessions/${id}`));
         if (!res.ok) throw new Error("Session not found");
         const s = (await res.json()) as SessionFull;
         setSessionId(id);

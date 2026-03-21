@@ -88,6 +88,28 @@ npm run build
 
 Serve `frontend/dist` with any static host and point API calls at your FastAPI deployment (update CORS in `.env`).
 
+## Deploying to Railway
+
+This repo is a **monorepo** (`backend/` Python + `frontend/` Vite). **Railpack** fails at the repo root because there is no single `package.json` or `requirements.txt` there.
+
+**Backend (API) — recommended**
+
+- A root **`Dockerfile`** builds the FastAPI app from `backend/` and runs `uvicorn` on **`PORT`** (Railway injects this).
+- **`railway.toml`** sets the builder to Docker, watch paths, and **`/api/health`** for health checks.
+- In Railway → your API service → **Variables**, set at least:
+  - `OPENAI_API_KEY`
+  - `CORS_ORIGINS` — include every origin that will load the SPA (e.g. `https://your-frontend.up.railway.app` or your custom domain). Comma-separated, no spaces unless quoted per your host rules.
+
+**Frontend (static)**
+
+- Build with `VITE_API_BASE_URL` set to your **public API URL** (e.g. `https://your-api.up.railway.app`, no trailing slash), then deploy `frontend/dist` (Railway static site, Cloudflare Pages, etc.). See `frontend/.env.example`.
+
+**Alternative (Railpack only, no Docker)**
+
+- In the service **Settings**, set **Root Directory** to `backend` so Railpack sees `requirements.txt`. Set **Start Command** to:  
+  `uvicorn app.main:app --host 0.0.0.0 --port $PORT`  
+  (and install deps via Railpack’s default or a custom build command if needed.)
+
 ## Troubleshooting
 
 | Issue | Fix |
@@ -98,6 +120,7 @@ Serve `frontend/dist` with any static host and point API calls at your FastAPI d
 | Session not found | UI stores `sessionId` in `sessionStorage`; clear site data or click "New session" |
 | File upload rejected | Use PNG, JPG, WebP, GIF, or PDF; max 15 MB per file |
 | Database/table errors | Delete `backend/safedevops_pilot.db` and restart the API to recreate schema |
+| Railway “Error creating build plan with Railpack” | Use the root **Dockerfile** + `railway.toml` in this repo, **or** set service **Root Directory** to `backend` |
 
 ## Key files (for review)
 

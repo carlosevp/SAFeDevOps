@@ -1,3 +1,4 @@
+import { apiUrl } from "./apiBase";
 import type { ReviewResult, SessionFull } from "./types";
 
 function parseApiError(res: Response, body: unknown): string {
@@ -35,7 +36,7 @@ export async function createSession(body: {
   email: string;
   team_name: string;
 }): Promise<SessionFull> {
-  const res = await fetch("/api/sessions", {
+  const res = await fetch(apiUrl("/api/sessions"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -44,12 +45,12 @@ export async function createSession(body: {
 }
 
 export async function getSession(sessionId: number): Promise<SessionFull> {
-  const res = await fetch(`/api/sessions/${sessionId}`);
+  const res = await fetch(apiUrl(`/api/sessions/${sessionId}`));
   return parseJson<SessionFull>(res);
 }
 
 export async function saveDraft(sessionId: number, practiceKey: string, narrative: string): Promise<SessionFull> {
-  const res = await fetch(`/api/sessions/${sessionId}/practice/${practiceKey}/draft`, {
+  const res = await fetch(apiUrl(`/api/sessions/${sessionId}/practice/${practiceKey}/draft`), {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ narrative }),
@@ -60,7 +61,7 @@ export async function saveDraft(sessionId: number, practiceKey: string, narrativ
 export async function uploadFile(sessionId: number, practiceKey: string, file: File): Promise<SessionFull> {
   const fd = new FormData();
   fd.append("file", file);
-  const res = await fetch(`/api/sessions/${sessionId}/practice/${practiceKey}/files`, {
+  const res = await fetch(apiUrl(`/api/sessions/${sessionId}/practice/${practiceKey}/files`), {
     method: "POST",
     body: fd,
   });
@@ -68,14 +69,14 @@ export async function uploadFile(sessionId: number, practiceKey: string, file: F
 }
 
 export async function deleteFile(sessionId: number, practiceKey: string, fileId: string): Promise<SessionFull> {
-  const res = await fetch(`/api/sessions/${sessionId}/practice/${practiceKey}/files/${fileId}`, {
+  const res = await fetch(apiUrl(`/api/sessions/${sessionId}/practice/${practiceKey}/files/${fileId}`), {
     method: "DELETE",
   });
   return parseJson<SessionFull>(res);
 }
 
 export async function runReview(sessionId: number, practiceKey: string): Promise<ReviewResult> {
-  const res = await fetch(`/api/sessions/${sessionId}/practice/${practiceKey}/review`, { method: "POST" });
+  const res = await fetch(apiUrl(`/api/sessions/${sessionId}/practice/${practiceKey}/review`), { method: "POST" });
   return parseJson<ReviewResult>(res);
 }
 
@@ -84,7 +85,7 @@ export async function submitFollowup(
   practiceKey: string,
   answers: string[]
 ): Promise<ReviewResult> {
-  const res = await fetch(`/api/sessions/${sessionId}/practice/${practiceKey}/followup`, {
+  const res = await fetch(apiUrl(`/api/sessions/${sessionId}/practice/${practiceKey}/followup`), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ answers }),
@@ -97,7 +98,7 @@ export async function confirmPractice(
   practiceKey: string,
   body: { acknowledge_consolidated_response: boolean; final_narrative: string }
 ): Promise<SessionFull> {
-  const res = await fetch(`/api/sessions/${sessionId}/practice/${practiceKey}/confirm`, {
+  const res = await fetch(apiUrl(`/api/sessions/${sessionId}/practice/${practiceKey}/confirm`), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -109,12 +110,12 @@ export async function confirmPractice(
 }
 
 export async function navigateSession(sessionId: number, index: number): Promise<SessionFull> {
-  const res = await fetch(`/api/sessions/${sessionId}/navigate/${index}`, { method: "POST" });
+  const res = await fetch(apiUrl(`/api/sessions/${sessionId}/navigate/${index}`), { method: "POST" });
   return parseJson<SessionFull>(res);
 }
 
 export async function downloadPartialExport(sessionId: number): Promise<{ blob: Blob; filename: string }> {
-  const res = await fetch(`/api/sessions/${sessionId}/export-partial`, {
+  const res = await fetch(apiUrl(`/api/sessions/${sessionId}/export-partial`), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ confirm_partial: true }),
@@ -137,7 +138,7 @@ export async function downloadPartialExport(sessionId: number): Promise<{ blob: 
 }
 
 export async function downloadExport(sessionId: number): Promise<{ blob: Blob; filename: string }> {
-  const res = await fetch(`/api/sessions/${sessionId}/export`, { method: "POST" });
+  const res = await fetch(apiUrl(`/api/sessions/${sessionId}/export`), { method: "POST" });
   if (!res.ok) {
     let detail = res.statusText;
     try {

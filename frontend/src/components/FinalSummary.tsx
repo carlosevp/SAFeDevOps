@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { SessionFull } from "../types";
 import { downloadExport } from "../api";
+import { apiUrl } from "../apiBase";
 
 type SummaryJson = {
   identity: { name: string; email: string; team_name: string };
@@ -53,7 +54,7 @@ export function FinalSummary({ sessionId, data, onNewSession }: Props) {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`/api/sessions/${sessionId}/summary-json`);
+        const res = await fetch(apiUrl(`/api/sessions/${sessionId}/summary-json`));
         if (!res.ok) {
           const t = await res.text();
           throw new Error(t || res.statusText);
