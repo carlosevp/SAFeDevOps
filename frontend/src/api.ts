@@ -44,6 +44,9 @@ function parseApiError(res: Response, body: unknown): string {
   }
   if (res.status === 404) return "Not found.";
   if (res.status === 503) return "Service unavailable. Check that the API is running and OPENAI_API_KEY is set.";
+  if (res.status === 502 || res.status === 504) {
+    return "Gateway timeout — the server stopped waiting for the review (often OpenAI or the host limit). Shorten text, remove large files, or try again.";
+  }
   if (res.status >= 500) return "Server error. Try again later.";
   return res.statusText || `HTTP ${res.status}`;
 }

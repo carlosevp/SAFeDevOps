@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 import uuid
 from pathlib import Path
@@ -475,10 +476,29 @@ def run_review(
         )
     except RuntimeError as e:
         return ReviewResultOut(ok=False, error=str(e))
+    except Exception:
+        logger.exception(
+            "run_review_unexpected session_id=%s practice_key=%s",
+            s.id,
+            practice_key,
+        )
+        return ReviewResultOut(
+            ok=False,
+            error="Review failed unexpectedly (see server logs). Check OPENAI_API_KEY, OPENAI_MODEL, and network; then try again.",
+        )
 
-    out = _persist_review_result(row, parsed, definition, pdef, at_cap=at_cap)
-    db.commit()
-    return out
+    try:
+        out = _persist_review_result(row, parsed, definition, pdef, at_cap=at_cap)
+        db.commit()
+        return out
+    except Exception:
+        db.rollback()
+        logger.exception(
+            "run_review_persist_failed session_id=%s practice_key=%s",
+            s.id,
+            practice_key,
+        )
+        return ReviewResultOut(ok=False, error="Could not save review results. Try again.")
 
 
 @router.post(
@@ -530,16 +550,35 @@ def submit_followup(
             definition,
             pdef,
             row.narrative or "",
-            json.loads(row.follow_up_transcript_json or "[]"),
+            transcript,
             row.follow_up_rounds_used,
             paths,
         )
     except RuntimeError as e:
         return ReviewResultOut(ok=False, error=str(e))
+    except Exception:
+        logger.exception(
+            "submit_followup_review_unexpected session_id=%s practice_key=%s",
+            s.id,
+            practice_key,
+        )
+        return ReviewResultOut(
+            ok=False,
+            error="Follow-up review failed unexpectedly (see server logs). Check OPENAI_API_KEY, OPENAI_MODEL, and network; then try again.",
+        )
 
-    out = _persist_review_result(row, parsed, definition, pdef, at_cap=at_cap)
-    db.commit()
-    return out
+    try:
+        out = _persist_review_result(row, parsed, definition, pdef, at_cap=at_cap)
+        db.commit()
+        return out
+    except Exception:
+        db.rollback()
+        logger.exception(
+            "submit_followup_persist_failed session_id=%s practice_key=%s",
+            s.id,
+            practice_key,
+        )
+        return ReviewResultOut(ok=False, error="Could not save follow-up review. Try again.")
 
 
 @router.post(

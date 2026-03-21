@@ -151,19 +151,29 @@ class OpenAIReviewService:
         transcript_text = json.dumps(for_prompt, ensure_ascii=False, indent=2)
 
         tmpl = definition.review_prompts.get("sufficiency_user_template", "")
-        user_text = tmpl.format(
-            pipeline_area=practice.pipeline_area_name,
-            practice_name=practice.name,
-            practice_key=practice.key,
-            what_it_evaluates=practice.what_it_evaluates,
-            user_prompt=practice.user_prompt,
-            narrative=narrative or "(empty)",
-            follow_up_transcript=transcript_text if transcript_text != "[]" else "(none)",
-            rubric_summary=rubric_summary,
-            sufficiency_confidence_threshold=conf_thr,
-            follow_up_rounds_used=follow_up_rounds_used,
-            follow_up_cap=cap,
-        )
+        try:
+            user_text = tmpl.format(
+                pipeline_area=practice.pipeline_area_name,
+                practice_name=practice.name,
+                practice_key=practice.key,
+                what_it_evaluates=practice.what_it_evaluates,
+                user_prompt=practice.user_prompt,
+                narrative=narrative or "(empty)",
+                follow_up_transcript=transcript_text if transcript_text != "[]" else "(none)",
+                rubric_summary=rubric_summary,
+                sufficiency_confidence_threshold=conf_thr,
+                follow_up_rounds_used=follow_up_rounds_used,
+                follow_up_cap=cap,
+            )
+        except (KeyError, ValueError) as e:
+            logger.warning("review_prompt_format_failed practice_key=%s err=%s", practice.key, e)
+            raise RuntimeError(
+                "Review prompt template failed to render. Check `sufficiency_user_template` in assessment YAML: "
+                "placeholders must be exactly "
+                "{pipeline_area}, {practice_name}, {practice_key}, {what_it_evaluates}, {user_prompt}, "
+                "{narrative}, {follow_up_transcript}, {rubric_summary}, {sufficiency_confidence_threshold}, "
+                "{follow_up_rounds_used}, {follow_up_cap} — use doubled braces {{ }} for literal braces."
+            ) from e
 
         system = definition.review_prompts.get("sufficiency_system", "You are a careful reviewer.")
 
