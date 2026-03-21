@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 
 type Props = {
   open: boolean;
@@ -31,20 +32,26 @@ export function PartialExportModal({ open, confirmedCount, total, onCancel, onCo
     return () => globalThis.removeEventListener("keydown", onKey);
   }, [open, busy, onCancel]);
 
-  return (
+  const modal = (
     <dialog
       ref={dialogRef}
       className="partial-export-dialog"
       aria-labelledby="partial-export-title"
+      aria-modal="true"
       onCancel={(e) => {
         if (busy) e.preventDefault();
         else onCancel();
       }}
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget && !busy) onCancel();
-      }}
     >
-      <div className="modal-dialog card" onMouseDown={(e) => e.stopPropagation()}>
+      {/* Explicit scrim: native ::backdrop is unreliable when the dialog is nested or restyled; portal + this layer always dims the page. */}
+      <div
+        className="partial-export-scrim"
+        aria-hidden
+        onMouseDown={() => {
+          if (!busy) onCancel();
+        }}
+      />
+      <div className="modal-dialog card partial-export-panel" onMouseDown={(e) => e.stopPropagation()}>
         <h2 id="partial-export-title" className="modal-title">
           Finish early and export?
         </h2>
@@ -72,4 +79,6 @@ export function PartialExportModal({ open, confirmedCount, total, onCancel, onCo
       </div>
     </dialog>
   );
+
+  return createPortal(modal, document.body);
 }
