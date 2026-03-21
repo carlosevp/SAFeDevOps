@@ -6,10 +6,10 @@ Open-source (MIT, see `LICENSE`) single-page guided self-assessment: YAML-define
 
 ## SonarQube Cloud
 
-Analysis runs on push and pull requests via [`.github/workflows/sonarcloud.yml`](.github/workflows/sonarcloud.yml). Configuration lives in [`sonar-project.properties`](sonar-project.properties) (`sonar.projectKey=carlosevp_SAFeDevOps`, `sonar.organization=carlosevp`).
+This project uses **SonarCloud Automatic Analysis** (GitHub integration), not GitHub Actions scans—running both causes: *“You are running CI analysis while Automatic Analysis is enabled.”* Repo settings live in [`sonar-project.properties`](sonar-project.properties) (`sonar.projectKey=carlosevp_SAFeDevOps`, `sonar.organization=carlosevp`).
 
-1. In [SonarCloud](https://sonarcloud.io), import this GitHub repository (or ensure the project **carlosevp_SAFeDevOps** exists under organization **carlosevp**).
-2. In the GitHub repo → **Settings** → **Secrets and variables** → **Actions**, add **`SONAR_TOKEN`** from SonarCloud (**My Account** → **Security** → **Generate Tokens**, or the project’s **Administration** → **Analysis Method** instructions).
+1. In [SonarCloud](https://sonarcloud.io), import or open project **carlosevp_SAFeDevOps** under organization **carlosevp**.
+2. Use the **SonarQube for IDE** plugin and/or your **SonarCloud MCP** (in Cursor) to pull issues and drive fixes; no **`SONAR_TOKEN`** GitHub Actions secret is required for this setup.
 
 ## Prerequisites
 
