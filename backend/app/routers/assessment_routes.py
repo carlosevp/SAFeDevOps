@@ -35,6 +35,8 @@ from app.services.export_builder import build_pdf_report, load_responses_map, wr
 from app.services.openai_review import openai_review_service
 from app.settings import settings
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(
     prefix="/api",
     tags=["assessment"],

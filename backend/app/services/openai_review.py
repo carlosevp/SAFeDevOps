@@ -136,6 +136,46 @@ class OpenAIReviewService:
             self._client = OpenAI(api_key=settings.openai_api_key, timeout=settings.openai_timeout_seconds)
         return self._client
 
+    def _apply_threshold_and_cap(
+        self,
+        parsed: AIReviewResult,
+        *,
+        conf_thr: float,
+        follow_up_rounds_used: int,
+        cap: int,
+        definition: AssessmentDefinition,
+    ) -> None:
+        """Enforce sufficiency confidence threshold and follow-up cap on model output (mutates parsed)."""
+        at_cap = follow_up_rounds_used >= cap
+        defaults = definition.defaults
+
+        if parsed.is_sufficient and float(parsed.confidence) < conf_thr:
+            parsed.is_sufficient = False
+            parsed.internal_score = None
+            parsed.score_rationale_summary = None
+            if not parsed.follow_up_questions and not at_cap:
+                fb = defaults.get("follow_up_fallback_question")
+                if isinstance(fb, str) and fb.strip():
+                    parsed.follow_up_questions = [fb.strip()]
+
+        if not parsed.is_sufficient and not at_cap and not parsed.follow_up_questions:
+            fb = defaults.get("follow_up_fallback_question")
+            if isinstance(fb, str) and fb.strip():
+                parsed.follow_up_questions = [fb.strip()]
+
+        if at_cap and not parsed.is_sufficient:
+            parsed.force_complete = True
+            parsed.follow_up_questions = []
+            if parsed.provisional_internal_score is None and parsed.internal_score is not None:
+                parsed.provisional_internal_score = parsed.internal_score
+            if parsed.provisional_score_rationale_summary is None:
+                parsed.provisional_score_rationale_summary = parsed.score_rationale_summary or parsed.rationale
+            parsed.internal_score = None
+            parsed.score_rationale_summary = None
+
+        if len(parsed.follow_up_questions) > 3:
+            parsed.follow_up_questions = parsed.follow_up_questions[:3]
+
     def review_practice(
         self,
         definition: AssessmentDefinition,
