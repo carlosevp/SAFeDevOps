@@ -1,9 +1,13 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
+
+
+def _utc_now() -> datetime:
+    return datetime.now(UTC)
 
 
 class AssessmentSession(Base):
@@ -14,8 +18,8 @@ class AssessmentSession(Base):
     email: Mapped[str] = mapped_column(String(320), nullable=False)
     team_name: Mapped[str] = mapped_column(String(255), nullable=False)
     assessment_version: Mapped[str] = mapped_column(String(64), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_utc_now, onupdate=_utc_now)
     current_practice_index: Mapped[int] = mapped_column(Integer, default=0)
     export_payload_json: Mapped[str | None] = mapped_column(Text, nullable=True)
 

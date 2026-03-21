@@ -30,7 +30,7 @@ export function AppHeader({ title, logoUrl, subtitle, children }: Props) {
         {src && !logoBroken ? (
           <img
             src={src}
-            alt=""
+            alt="Application logo"
             className="app-logo"
             width={160}
             height={36}

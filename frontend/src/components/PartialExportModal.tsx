@@ -22,7 +22,19 @@ export function PartialExportModal({ open, confirmedCount, total, onCancel, onCo
   if (!open) return null;
 
   return (
-    <div className="modal-backdrop" role="presentation" onMouseDown={onCancel}>
+    <div
+      className="modal-backdrop"
+      role="button"
+      tabIndex={0}
+      aria-label="Close dialog"
+      onMouseDown={onCancel}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onCancel();
+        }
+      }}
+    >
       <div
         className="modal-dialog card"
         role="dialog"

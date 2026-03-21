@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from app.database import init_db
 from app.routers.assessment_routes import router as assessment_router
 from app.settings import settings
+from app.spa_static import register_spa_public_files
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -46,20 +47,7 @@ def _spa_enabled() -> bool:
 if _SPA_ASSETS.is_dir():
     app.mount("/assets", StaticFiles(directory=str(_SPA_ASSETS)), name="spa_assets")
 
-# Vite copies `public/` files next to index.html (e.g. logo-placeholder.svg)
-if _spa_enabled():
-    for entry in _SPA_DIR.iterdir():
-        if not entry.is_file() or entry.name == "index.html":
-            continue
-        fp = entry.resolve()
-
-        def _make_file_response(path: Path):
-            def _send() -> FileResponse:
-                return FileResponse(path)
-
-            return _send
-
-        app.add_api_route(f"/{entry.name}", _make_file_response(fp), methods=["GET"])
+register_spa_public_files(app, _SPA_DIR)
 
 
 @app.get("/")

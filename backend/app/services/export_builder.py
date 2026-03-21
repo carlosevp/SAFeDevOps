@@ -109,7 +109,7 @@ def _ensure_dejavu(pdf: ReportPDF) -> None:
             pdf, _PROJECT_FONT_DIR / "DejaVuSans.ttf", _PROJECT_FONT_DIR / "DejaVuSans-Bold.ttf"
         ):
             pass
-    except Exception:  # noqa: BLE001
+    except (OSError, ImportError, TypeError, ValueError, RuntimeError):
         pdf._font_family = "Helvetica"
         pdf._unicode_font = False
         pdf._font_size_body = 11

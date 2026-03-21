@@ -402,7 +402,7 @@ export function PracticePanel({
               </div>
               <ol className="followup-questions">
                 {displayQuestions.map((q, i) => (
-                  <li key={`${i}-${q.slice(0, 24)}`}>{q}</li>
+                  <li key={`${practice.key}-followup-${i}`}>{q}</li>
                 ))}
               </ol>
             </div>

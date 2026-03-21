@@ -1,6 +1,15 @@
 # SAFe DevOps self-assessment
 
+[![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-light.svg)](https://sonarcloud.io/summary/new_code?id=carlosevp_SAFeDevOps)
+
 Open-source (MIT, see `LICENSE`) single-page guided self-assessment: YAML-defined practices, SQLite persistence, optional image/PDF evidence, OpenAI sufficiency review with inline follow-ups (capped at 3), hidden scoring until the final summary, and ZIP export (`report.pdf` + `results.json`). Content is generic (enterprise-context examples); replace prompts and `enterprise_examples` in the YAML with your own organization’s language as needed.
+
+## SonarQube Cloud
+
+Analysis runs on push and pull requests via [`.github/workflows/sonarcloud.yml`](.github/workflows/sonarcloud.yml). Configuration lives in [`sonar-project.properties`](sonar-project.properties) (`sonar.projectKey=carlosevp_SAFeDevOps`, `sonar.organization=carlosevp`).
+
+1. In [SonarCloud](https://sonarcloud.io), import this GitHub repository (or ensure the project **carlosevp_SAFeDevOps** exists under organization **carlosevp**).
+2. In the GitHub repo → **Settings** → **Secrets and variables** → **Actions**, add **`SONAR_TOKEN`** from SonarCloud (**My Account** → **Security** → **Generate Tokens**, or the project’s **Administration** → **Analysis Method** instructions).
 
 ## Prerequisites
 

@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from openai import APIError, APITimeoutError, OpenAI
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 from app.assessment_loader import AssessmentDefinition, PracticeDefinition, get_effective_thresholds
 from app.narrative_merge import transcript_for_ai_prompt
@@ -144,8 +144,6 @@ class OpenAIReviewService:
         evidence_file_paths: list[Path],
     ) -> AIReviewResult:
         conf_thr, cap = get_effective_thresholds(definition, practice)
-        low_flag_thr = float(definition.defaults.get("low_confidence_flag_threshold", 0.55))
-
         rubric_summary = definition.rubric_summary_text(practice.ai_review.rubric_ref)
         for_prompt = transcript_for_ai_prompt(follow_up_transcript)
         transcript_text = json.dumps(for_prompt, ensure_ascii=False, indent=2)
@@ -214,7 +212,7 @@ class OpenAIReviewService:
 
         try:
             parsed = AIReviewResult.model_validate(data)
-        except Exception as e:  # noqa: BLE001
+        except ValidationError as e:
             logger.warning("openai_schema_validate_failed")
             raise RuntimeError("AI response failed validation.") from e
 
@@ -242,7 +240,6 @@ class OpenAIReviewService:
                     else "Please add more specific detail so the assessment can be scored confidently."
                 ]
 
-        _ = low_flag_thr
         return parsed
 
 
