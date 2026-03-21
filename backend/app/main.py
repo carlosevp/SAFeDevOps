@@ -2,13 +2,16 @@ import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
+from app.access_gate import LOGIN_PAGE_HTML, gate_enabled, request_has_valid_gate_cookie
+from app.access_gate_middleware import AccessGateMiddleware
 from app.database import init_db
 from app.routers.assessment_routes import router as assessment_router
+from app.routers.gate_routes import router as gate_router
 from app.settings import settings
 from app.spa_static import register_spa_public_files
 
@@ -27,6 +30,7 @@ async def lifespan(_app: FastAPI):
 
 
 app = FastAPI(title="SAFe DevOps Self-Assessment Pilot", lifespan=lifespan)
+app.add_middleware(AccessGateMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
@@ -34,6 +38,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.include_router(gate_router)
 app.include_router(assessment_router)
 
 _SPA_DIR = Path(__file__).resolve().parent.parent / "spa_dist"
@@ -51,7 +56,9 @@ register_spa_public_files(app, _SPA_DIR)
 
 
 @app.get("/")
-def root():
+def root(request: Request):
     if _spa_enabled():
+        if gate_enabled() and not request_has_valid_gate_cookie(request):
+            return HTMLResponse(LOGIN_PAGE_HTML)
         return FileResponse(_SPA_DIR / "index.html")
     return {"service": "safedevops-assessment-pilot", "docs": "/docs"}

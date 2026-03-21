@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -24,6 +25,16 @@ class Settings(BaseSettings):
     # When true, API returns AI rationale and sufficiency-style messaging to the UI.
     # Omitted or false = gentler UX (follow-ups only, neutral confirmations). Set true in .env for pilot debugging.
     safedevops_debug_mode: bool = False
+
+    # Non-empty = require shared password (signed HttpOnly cookie) for /api, /assets, /docs, and SPA public files.
+    safedevops_access_password: str = ""
+
+    @field_validator("safedevops_access_password", mode="before")
+    @classmethod
+    def strip_access_password(cls, v: object) -> str:
+        if v is None:
+            return ""
+        return str(v).strip()
 
     @property
     def cors_origin_list(self) -> list[str]:

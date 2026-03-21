@@ -54,7 +54,9 @@ export function FinalSummary({ sessionId, data, onNewSession }: Props) {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(apiUrl(`/api/sessions/${sessionId}/summary-json`));
+        const res = await fetch(apiUrl(`/api/sessions/${sessionId}/summary-json`), {
+          credentials: "include",
+        });
         if (!res.ok) {
           const t = await res.text();
           throw new Error(t || res.statusText);

@@ -107,6 +107,7 @@ This repo is a **monorepo** (`backend/` Python + `frontend/` Vite). **Railpack**
 - Visiting `/` serves the React app; `/api/*` is the API; `/docs` is OpenAPI. Same-origin requests use relative `/api` (leave **`VITE_API_BASE_URL`** unset in the Docker build).
 - **`railway.toml`** selects Docker, watch paths, and **`/api/health`** for health checks.
 - In Railway → **Variables**, set at least **`OPENAI_API_KEY`**. **`CORS_ORIGINS`** is optional when the UI and API share the same Railway hostname; add extra origins if you also host the UI elsewhere.
+- Optional **`SAFEDEVOPS_ACCESS_PASSWORD`**: when set, visitors must enter this shared password before the SPA and `/api` (except `/api/health` and gate endpoints) are usable. Uses a signed **HttpOnly** cookie (`Secure` when the request is HTTPS, e.g. behind Railway’s proxy). Omit locally if you do not want a gate.
 
 **Split deployment (API + static frontend)**
 
