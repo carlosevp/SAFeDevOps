@@ -1,6 +1,7 @@
 # SAFe DevOps self-assessment
 
 [![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-light.svg)](https://sonarcloud.io/summary/new_code?id=carlosevp_SAFeDevOps)
+[![Snyk Security](https://snyk.io/test/github/carlosevp/SAFeDevOps/badge.svg)](https://snyk.io/test/github/carlosevp/SAFeDevOps)
 
 Open-source (MIT, see `LICENSE`) single-page guided self-assessment: YAML-defined practices, SQLite persistence, optional image/PDF evidence, OpenAI sufficiency review with inline follow-ups (capped at 3), hidden scoring until the final summary, and ZIP export (`report.pdf` + `results.json`). Content is generic (enterprise-context examples); replace prompts and `enterprise_examples` in the YAML with your own organization’s language as needed.
 
@@ -10,6 +11,10 @@ This project uses **SonarCloud Automatic Analysis** (GitHub integration), not Gi
 
 1. In [SonarCloud](https://sonarcloud.io), import or open project **carlosevp_SAFeDevOps** under organization **carlosevp**.
 2. Use the **SonarQube for IDE** plugin and/or your **SonarCloud MCP** (in Cursor) to pull issues and drive fixes; no **`SONAR_TOKEN`** GitHub Actions secret is required for this setup.
+
+## Snyk
+
+The **Snyk Security** badge links to [Snyk’s public test page for this repository](https://snyk.io/test/github/carlosevp/SAFeDevOps). After you **import `carlosevp/SAFeDevOps` in Snyk** and run scans, the badge reflects the combined status Snyk reports for the project (open source manifests such as `frontend/package.json`, `backend/requirements.txt`, and—if you enable it—**Dockerfile / container** analysis in the Snyk UI).
 
 ## Prerequisites
 
