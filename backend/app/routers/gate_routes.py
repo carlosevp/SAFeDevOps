@@ -38,7 +38,7 @@ def gate_status(request: Request) -> GateStatusOut:
     )
 
 
-@router.post("/gate/login")
+@router.post("/gate/login", responses={401: {"description": "Incorrect password."}})
 def gate_login(request: Request, body: GateLoginIn, response: Response) -> dict[str, bool]:
     if not gate_enabled():
         return {"ok": True}

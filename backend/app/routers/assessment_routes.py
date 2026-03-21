@@ -50,6 +50,13 @@ UploadFileDep = Annotated[UploadFile, File(...)]
 
 UNKNOWN_PRACTICE_DETAIL = "Unknown practice"
 
+# OpenAPI: document HTTPException status codes per operation (Sonar / FastAPI convention).
+HTTP_400 = {400: {"description": "Bad request"}}
+HTTP_404 = {404: {"description": "Not found"}}
+HTTP_503 = {503: {"description": "Service unavailable"}}
+HTTP_400_404 = {**HTTP_400, **HTTP_404}
+HTTP_400_404_503 = {**HTTP_400, **HTTP_404, **HTTP_503}
+
 NEUTRAL_CONFIRM = "You can continue to the next practice when ready."
 NEUTRAL_CAP = "You have reached the follow-up limit. You may still continue."
 
@@ -289,7 +296,11 @@ def get_session(session_id: int, db: DbSession, definition: AssessmentDep):
     return _session_full(db, s, definition)
 
 
-@router.put("/sessions/{session_id}/practice/{practice_key}/draft", response_model=SessionFullOut)
+@router.put(
+    "/sessions/{session_id}/practice/{practice_key}/draft",
+    response_model=SessionFullOut,
+    responses=HTTP_404,
+)
 def save_draft(
     session_id: int,
     practice_key: str,
@@ -307,7 +318,11 @@ def save_draft(
     return _session_full(db, s, definition)
 
 
-@router.post("/sessions/{session_id}/practice/{practice_key}/files", response_model=SessionFullOut)
+@router.post(
+    "/sessions/{session_id}/practice/{practice_key}/files",
+    response_model=SessionFullOut,
+    responses=HTTP_400_404,
+)
 async def upload_file(
     session_id: int,
     practice_key: str,
@@ -354,7 +369,11 @@ async def upload_file(
     return _session_full(db, s, definition)
 
 
-@router.delete("/sessions/{session_id}/practice/{practice_key}/files/{file_id}", response_model=SessionFullOut)
+@router.delete(
+    "/sessions/{session_id}/practice/{practice_key}/files/{file_id}",
+    response_model=SessionFullOut,
+    responses=HTTP_404,
+)
 def delete_file(
     session_id: int,
     practice_key: str,
@@ -411,7 +430,11 @@ def _persist_review_result(
     )
 
 
-@router.post("/sessions/{session_id}/practice/{practice_key}/review", response_model=ReviewResultOut)
+@router.post(
+    "/sessions/{session_id}/practice/{practice_key}/review",
+    response_model=ReviewResultOut,
+    responses=HTTP_400_404_503,
+)
 def run_review(
     session_id: int,
     practice_key: str,
@@ -455,7 +478,11 @@ def run_review(
     return out
 
 
-@router.post("/sessions/{session_id}/practice/{practice_key}/followup", response_model=ReviewResultOut)
+@router.post(
+    "/sessions/{session_id}/practice/{practice_key}/followup",
+    response_model=ReviewResultOut,
+    responses=HTTP_400_404_503,
+)
 def submit_followup(
     session_id: int,
     practice_key: str,
@@ -563,7 +590,11 @@ def confirm_practice(
     return _session_full(db, s, definition)
 
 
-@router.post("/sessions/{session_id}/navigate/{index}", response_model=SessionFullOut)
+@router.post(
+    "/sessions/{session_id}/navigate/{index}",
+    response_model=SessionFullOut,
+    responses=HTTP_400_404,
+)
 def navigate(session_id: int, index: int, db: DbSession, definition: AssessmentDep):
     s = _get_session(db, session_id)
     keys = _ordered_keys(definition)
@@ -615,7 +646,7 @@ def _commit_export_zip(
     )
 
 
-@router.post("/sessions/{session_id}/export")
+@router.post("/sessions/{session_id}/export", responses=HTTP_400_404)
 def export_zip(session_id: int, db: DbSession, definition: AssessmentDep):
     s = _get_session(db, session_id)
     keys = _ordered_keys(definition)
@@ -627,7 +658,7 @@ def export_zip(session_id: int, db: DbSession, definition: AssessmentDep):
     return _commit_export_zip(db, s, definition, rmap, partial_export=False)
 
 
-@router.post("/sessions/{session_id}/export-partial")
+@router.post("/sessions/{session_id}/export-partial", responses=HTTP_400_404)
 def export_partial_zip(
     session_id: int,
     body: PartialExportIn,
