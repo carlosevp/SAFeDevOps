@@ -1,66 +1,46 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" role="img" aria-labelledby="atitle adesc">
   <title id="atitle">Self-assessment application architecture</title>
-  <desc id="adesc">Browser SPA, FastAPI server, SQLite and files, OpenAI API, and export outputs.</desc>
+  <desc id="adesc">Browser SPA, FastAPI server, SQLite and files, OpenAI API, export outputs.</desc>
   <defs>
-    <linearGradient id="apiGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#3b82f6"/>
-      <stop offset="100%" style="stop-color:#1d4ed8"/>
+    <linearGradient id="ag" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#1d4ed8"/>
     </linearGradient>
-    <filter id="s"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.2"/></filter>
-  </defs>
-  <rect width="800" height="420" fill="#f1f5f9"/>
-  <text x="400" y="34" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="17" font-weight="600" fill="#0f172a">Deployment architecture (single-container pattern)</text>
-  <!-- Browser -->
-  <g filter="url(#s)">
-    <rect x="40" y="70" width="200" height="120" rx="12" fill="#fff" stroke="#64748b" stroke-width="1.5"/>
-    <text x="140" y="100" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="13" font-weight="600" fill="#0f172a">Browser</text>
-    <text x="140" y="122" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="11" fill="#475569">React + Vite SPA</text>
-    <text x="140" y="142" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="10" fill="#64748b">HTTPS · same-origin /api</text>
-    <text x="140" y="168" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="9" fill="#94a3b8">Optional access gate cookie</text>
-  </g>
-  <!-- FastAPI -->
-  <g filter="url(#s)">
-    <rect x="300" y="60" width="240" height="140" rx="12" fill="url(#apiGrad)" stroke="#1e40af" stroke-width="1"/>
-    <text x="420" y="95" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="14" font-weight="600" fill="#fff">FastAPI (Uvicorn)</text>
-    <text x="420" y="118" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="11" fill="#dbeafe">REST API · static SPA</text>
-    <text x="420" y="138" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="10" fill="#bfdbfe">Assessment routes · auth gate</text>
-    <text x="420" y="158" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="10" fill="#bfdbfe">YAML definition · PDF/ZIP export</text>
-    <text x="420" y="182" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="9" fill="#93c5fd">PORT from environment</text>
-  </g>
-  <!-- SQLite -->
-  <g filter="url(#s)">
-    <rect x="600" y="70" width="160" height="110" rx="10" fill="#fff" stroke="#0d9488" stroke-width="1.5"/>
-    <text x="680" y="100" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="12" font-weight="600" fill="#134e4a">Persistence</text>
-    <text x="680" y="122" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="10" fill="#0f766e">SQLite</text>
-    <text x="680" y="142" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="10" fill="#475569">uploads/ · exports/</text>
-    <text x="680" y="162" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="9" fill="#64748b">Session &amp; practice rows</text>
-  </g>
-  <!-- Arrows browser to API -->
-  <path d="M 245 130 L 288 130" stroke="#334155" stroke-width="2" fill="none" marker-end="url(#arr)"/>
-  <text x="265" y="122" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="8" fill="#64748b">HTTP</text>
-  <!-- API to SQLite -->
-  <path d="M 545 130 L 592 125" stroke="#334155" stroke-width="2" fill="none" marker-end="url(#arr)"/>
-  <!-- OpenAI below -->
-  <g filter="url(#s)">
-    <rect x="320" y="250" width="200" height="90" rx="10" fill="#fff" stroke="#7c3aed" stroke-width="1.5"/>
-    <text x="420" y="280" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="12" font-weight="600" fill="#5b21b6">OpenAI API</text>
-    <text x="420" y="302" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="10" fill="#6d28d9">Chat completions · JSON mode</text>
-    <text x="420" y="322" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="9" fill="#7c3aed">Vision for images · PDF text excerpt</text>
-  </g>
-  <path d="M 420 202 L 420 242" stroke="#334155" stroke-width="2" fill="none" marker-end="url(#arr)"/>
-  <text x="432" y="228" font-family="Segoe UI, system-ui, sans-serif" font-size="8" fill="#64748b">review</text>
-  <!-- Export -->
-  <g filter="url(#s)">
-    <rect x="560" y="250" width="200" height="90" rx="10" fill="#fff" stroke="#ea580c" stroke-width="1.5"/>
-    <text x="660" y="280" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="12" font-weight="600" fill="#9a3412">Export bundle</text>
-    <text x="660" y="302" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="10" fill="#c2410c">report.pdf</text>
-    <text x="660" y="320" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="10" fill="#c2410c">results.json</text>
-  </g>
-  <path d="M 520 200 L 640 248" stroke="#334155" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
-  <defs>
-    <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+    <marker id="am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto">
       <polygon points="0 0, 8 4, 0 8" fill="#334155"/>
     </marker>
   </defs>
-  <text x="400" y="395" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="9" fill="#64748b">Split deployment: host SPA separately; set VITE_API_BASE_URL and CORS_ORIGINS on the API.</text>
+  <rect width="800" height="420" fill="#f1f5f9"/>
+  <text x="400" y="34" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="bold" fill="#0f172a">Deployment architecture (single-container pattern)</text>
+  <rect x="40" y="70" width="200" height="120" rx="12" fill="#ffffff" stroke="#64748b" stroke-width="2"/>
+  <text x="140" y="100" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="bold" fill="#0f172a">Browser</text>
+  <text x="140" y="122" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">React + Vite SPA</text>
+  <text x="140" y="142" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="10" fill="#64748b">HTTPS, same-origin /api</text>
+  <text x="140" y="168" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="#94a3b8">Optional access gate cookie</text>
+  <rect x="300" y="60" width="240" height="140" rx="12" fill="url(#ag)" stroke="#1e40af" stroke-width="2"/>
+  <text x="420" y="95" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#ffffff">FastAPI (Uvicorn)</text>
+  <text x="420" y="118" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#dbeafe">REST API, static SPA</text>
+  <text x="420" y="138" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="10" fill="#bfdbfe">Assessment routes, auth gate</text>
+  <text x="420" y="158" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="10" fill="#bfdbfe">YAML, PDF/ZIP export</text>
+  <text x="420" y="182" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="#93c5fd">PORT from environment</text>
+  <rect x="600" y="70" width="160" height="110" rx="10" fill="#ffffff" stroke="#0d9488" stroke-width="2"/>
+  <text x="680" y="100" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="bold" fill="#134e4a">Persistence</text>
+  <text x="680" y="122" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="10" fill="#0f766e">SQLite</text>
+  <text x="680" y="142" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="10" fill="#475569">uploads/, exports/</text>
+  <text x="680" y="162" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="#64748b">Session and practice rows</text>
+  <path d="M 245 130 L 285 130" stroke="#334155" stroke-width="2" fill="none" marker-end="url(#am)"/>
+  <text x="265" y="122" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="8" fill="#64748b">HTTP</text>
+  <path d="M 545 130 L 592 125" stroke="#334155" stroke-width="2" fill="none" marker-end="url(#am)"/>
+  <rect x="320" y="250" width="200" height="90" rx="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+  <text x="420" y="280" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="bold" fill="#5b21b6">OpenAI API</text>
+  <text x="420" y="302" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="10" fill="#6d28d9">Chat completions, JSON mode</text>
+  <text x="420" y="322" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="#7c3aed">Vision, PDF text excerpt</text>
+  <path d="M 420 202 L 420 242" stroke="#334155" stroke-width="2" fill="none" marker-end="url(#am)"/>
+  <text x="432" y="228" font-family="Arial, Helvetica, sans-serif" font-size="8" fill="#64748b">review</text>
+  <rect x="560" y="250" width="200" height="90" rx="10" fill="#ffffff" stroke="#ea580c" stroke-width="2"/>
+  <text x="660" y="280" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="bold" fill="#9a3412">Export bundle</text>
+  <text x="660" y="302" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="10" fill="#c2410c">report.pdf</text>
+  <text x="660" y="320" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="10" fill="#c2410c">results.json</text>
+  <path d="M 520 200 L 632 248" stroke="#334155" stroke-width="2" fill="none" marker-end="url(#am)"/>
+  <text x="400" y="395" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="#64748b">Split deploy: VITE_API_BASE_URL and CORS_ORIGINS on API.</text>
 </svg>

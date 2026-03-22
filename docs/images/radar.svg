@@ -1,16 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 520" role="img" aria-labelledby="rtitle rdesc">
-  <title id="rtitle">Example radar chart  practice maturity by axis</title>
-  <desc id="rdesc">Fictional spider chart: eight axes and a filled polygon showing relative scores for analytics mockups.</desc>
+  <title id="rtitle">Example radar chart - practice maturity by axis</title>
+  <desc id="rdesc">Spider chart with eight axes and a filled polygon for analytics mockups.</desc>
   <rect width="520" height="520" fill="#ffffff"/>
-  <text x="260" y="36" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="16" font-weight="600" fill="#1e293b">Example: maturity radar (illustrative scores)</text>
-  <text x="260" y="56" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="10" fill="#64748b">Build from results.json  practice_key or pipeline_area averages as dimensions</text>
+  <text x="260" y="36" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="bold" fill="#1e293b">Example: maturity radar (illustrative scores)</text>
+  <text x="260" y="56" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="10" fill="#64748b">Build from results.json: practice_key or pipeline_area averages as dimensions</text>
   <g transform="translate(260,290)">
-    <!-- Grid rings 1-5 -->
     <circle r="180" fill="none" stroke="#e2e8f0" stroke-width="1"/>
     <circle r="135" fill="none" stroke="#e2e8f0" stroke-width="1"/>
     <circle r="90" fill="none" stroke="#e2e8f0" stroke-width="1"/>
     <circle r="45" fill="none" stroke="#e2e8f0" stroke-width="1"/>
-    <!-- 8 axes at 45 -->
     <g stroke="#cbd5e1" stroke-width="1">
       <line x1="0" y1="0" x2="0" y2="-180"/>
       <line x1="0" y1="0" x2="127.3" y2="-127.3"/>
@@ -21,24 +19,21 @@
       <line x1="0" y1="0" x2="-180" y2="0"/>
       <line x1="0" y1="0" x2="-127.3" y2="-127.3"/>
     </g>
-    <!-- Scale labels -->
-    <text x="8" y="-42" font-family="Segoe UI, system-ui, sans-serif" font-size="8" fill="#94a3b8">2</text>
-    <text x="8" y="-87" font-family="Segoe UI, system-ui, sans-serif" font-size="8" fill="#94a3b8">3</text>
-    <text x="8" y="-132" font-family="Segoe UI, system-ui, sans-serif" font-size="8" fill="#94a3b8">4</text>
-    <text x="8" y="-175" font-family="Segoe UI, system-ui, sans-serif" font-size="8" fill="#94a3b8">5</text>
-    <!-- Data polygon: normalized 0-1 from scores ~3.2,4.1,2.8,3.6,4.0,3.3,2.9,3.7 on 1-5 scale  radius = (s-1)/4 * 180 -->
-    <polygon fill="rgba(37,99,235,0.35)" stroke="#2563eb" stroke-width="2"
+    <text x="8" y="-42" font-family="Arial, Helvetica, sans-serif" font-size="8" fill="#94a3b8">2</text>
+    <text x="8" y="-87" font-family="Arial, Helvetica, sans-serif" font-size="8" fill="#94a3b8">3</text>
+    <text x="8" y="-132" font-family="Arial, Helvetica, sans-serif" font-size="8" fill="#94a3b8">4</text>
+    <text x="8" y="-175" font-family="Arial, Helvetica, sans-serif" font-size="8" fill="#94a3b8">5</text>
+    <polygon fill="#2563eb" fill-opacity="0.35" stroke="#2563eb" stroke-width="2"
       points="0,-144 101.2,-101.2 81,0 68.8,68.8 0,135 -79.2,79.2 -117,0 -79.2,-79.2"/>
-    <!-- Axis labels (abbreviated practices) -->
-    <text x="0" y="-198" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="9" font-weight="500" fill="#334155">Hypothesize</text>
-    <text x="150" y="-150" text-anchor="start" font-family="Segoe UI, system-ui, sans-serif" font-size="9" fill="#334155">Build</text>
-    <text x="195" y="6" text-anchor="start" font-family="Segoe UI, system-ui, sans-serif" font-size="9" fill="#334155">Deploy</text>
-    <text x="145" y="165" text-anchor="start" font-family="Segoe UI, system-ui, sans-serif" font-size="9" fill="#334155">Monitor</text>
-    <text x="0" y="200" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="9" fill="#334155">Release</text>
-    <text x="-145" y="165" text-anchor="end" font-family="Segoe UI, system-ui, sans-serif" font-size="9" fill="#334155">Measure</text>
-    <text x="-200" y="6" text-anchor="end" font-family="Segoe UI, system-ui, sans-serif" font-size="9" fill="#334155">Develop</text>
-    <text x="-150" y="-150" text-anchor="end" font-family="Segoe UI, system-ui, sans-serif" font-size="9" fill="#334155">Architect</text>
+    <text x="0" y="-198" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="bold" fill="#334155">Hypothesize</text>
+    <text x="150" y="-150" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="#334155">Build</text>
+    <text x="195" y="6" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="#334155">Deploy</text>
+    <text x="145" y="165" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="#334155">Monitor</text>
+    <text x="0" y="200" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="#334155">Release</text>
+    <text x="-145" y="165" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="#334155">Measure</text>
+    <text x="-200" y="6" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="#334155">Develop</text>
+    <text x="-150" y="-150" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="#334155">Architect</text>
   </g>
   <rect x="40" y="470" width="440" height="36" rx="4" fill="#f1f5f9" stroke="#e2e8f0"/>
-  <text x="60" y="492" font-family="Segoe UI, system-ui, sans-serif" font-size="9" fill="#475569">Tableau / Power BI: unpivot practices, use score (1-5) on radial or parallel coords. Filter practice_completion_status = completed for scored points.</text>
+  <text x="60" y="492" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="#475569">Tableau / Power BI: use score (1-5) on radial charts. Filter practice_completion_status = completed.</text>
 </svg>
