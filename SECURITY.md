@@ -16,7 +16,18 @@ Preferred channel:
 2. Go to the **Security** tab.
 3. Use **[Report a vulnerability](https://github.com/carlosevp/SAFeDevOps/security/advisories/new)** (private security advisory).
 
-If private reporting is not available for this repo, contact the maintainers through a **private** channel they publish on the repository or organization profile, or ask for a reporting address via a **non-sensitive** issue titled “Security contact request”.
+If the **Report a vulnerability** button is missing, the maintainer may need to turn the feature on (see below), or you can use a **non-sensitive** issue titled “Security contact request” to ask for a private channel.
+
+### For maintainers: enable private vulnerability reporting
+
+GitHub’s toggle is **not** under Settings → General. Use:
+
+1. Open the repository on GitHub.
+2. Click **Settings** (you must be the **owner** or an **admin**; collaborators often cannot see Settings on personal repos).
+3. In the **left sidebar**, open the **Security** section and click **Advanced Security**.
+4. Find **Private vulnerability reporting** and click **Enable**.
+
+Official steps: [Configuring private vulnerability reporting for a repository](https://docs.github.com/en/code-security/security-advisories/working-with-repository-security-advisories/configuring-private-vulnerability-reporting-for-a-repository).
 
 ## What to include
 
