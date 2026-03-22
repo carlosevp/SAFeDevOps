@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400" role="img" aria-labelledby="htitle hdesc">
+  <title id="htitle">Example domain by practice heatmap</title>
+  <desc id="hdesc">Grid with four pipeline rows, four practice columns, color-coded fictional maturity levels and legend.</desc>
+  <rect width="720" height="400" fill="#f8fafc"/>
+  <text x="360" y="32" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="16" font-weight="600" fill="#0f172a">Example: domain heatmap (illustrative)</text>
+  <text x="360" y="52" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="10" fill="#64748b">Rows = pipeline areas; columns = practices; color = score band (confirmed only)</text>
+  <text x="420" y="78" font-family="Segoe UI, system-ui, sans-serif" font-size="9" font-weight="600" fill="#475569">Maturity (example)</text>
+  <rect x="520" y="66" width="36" height="16" fill="#fecaca" stroke="#991b1b" stroke-width="0.5"/><text x="562" y="78" font-family="Segoe UI, system-ui, sans-serif" font-size="8" fill="#334155">1.0-2.0</text>
+  <rect x="520" y="86" width="36" height="16" fill="#fde68a" stroke="#b45309" stroke-width="0.5"/><text x="562" y="98" font-family="Segoe UI, system-ui, sans-serif" font-size="8" fill="#334155">2.1-3.0</text>
+  <rect x="520" y="106" width="36" height="16" fill="#bbf7d0" stroke="#166534" stroke-width="0.5"/><text x="562" y="118" font-family="Segoe UI, system-ui, sans-serif" font-size="8" fill="#334155">3.1-4.0</text>
+  <rect x="520" y="126" width="36" height="16" fill="#15803d" stroke="#14532d" stroke-width="0.5"/><text x="562" y="138" font-family="Segoe UI, system-ui, sans-serif" font-size="8" fill="#fff">4.1-5.0</text>
+  <text x="620" y="100" font-family="Segoe UI, system-ui, sans-serif" font-size="8" fill="#94a3b8">Incomplete: hatched</text>
+  <text x="200" y="118" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="9" font-weight="600" fill="#475569">P1</text>
+  <text x="290" y="118" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="9" font-weight="600" fill="#475569">P2</text>
+  <text x="380" y="118" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="9" font-weight="600" fill="#475569">P3</text>
+  <text x="470" y="118" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="9" font-weight="600" fill="#475569">P4</text>
+  <text x="100" y="168" text-anchor="end" font-family="Segoe UI, system-ui, sans-serif" font-size="10" fill="#1e293b">Continuous Exploration</text>
+  <rect x="160" y="138" width="80" height="44" fill="#bbf7d0" stroke="#334155" stroke-width="0.5"/><text x="200" y="164" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="11" font-weight="600" fill="#14532d">3.4</text>
+  <rect x="250" y="138" width="80" height="44" fill="#15803d" stroke="#334155" stroke-width="0.5"/><text x="290" y="164" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="11" font-weight="600" fill="#fff">4.2</text>
+  <rect x="340" y="138" width="80" height="44" fill="#fde68a" stroke="#334155" stroke-width="0.5"/><text x="380" y="164" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="11" font-weight="600" fill="#92400e">2.6</text>
+  <rect x="430" y="138" width="80" height="44" fill="#fecaca" stroke="#334155" stroke-width="0.5"/><text x="470" y="164" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="11" font-weight="600" fill="#7f1d1d">1.8</text>
+  <text x="100" y="228" text-anchor="end" font-family="Segoe UI, system-ui, sans-serif" font-size="10" fill="#1e293b">Continuous Integration</text>
+  <rect x="160" y="198" width="80" height="44" fill="#bbf7d0" stroke="#334155" stroke-width="0.5"/><text x="200" y="224" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="11" font-weight="600" fill="#14532d">3.8</text>
+  <rect x="250" y="198" width="80" height="44" fill="#bbf7d0" stroke="#334155" stroke-width="0.5"/><text x="290" y="224" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="11" font-weight="600" fill="#14532d">3.1</text>
+  <rect x="340" y="198" width="80" height="44" fill="#15803d" stroke="#334155" stroke-width="0.5"/><text x="380" y="224" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="11" font-weight="600" fill="#fff">4.5</text>
+  <rect x="430" y="198" width="80" height="44" fill="#fde68a" stroke="#334155" stroke-width="0.5"/><text x="470" y="224" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="11" font-weight="600" fill="#92400e">2.9</text>
+  <text x="100" y="288" text-anchor="end" font-family="Segoe UI, system-ui, sans-serif" font-size="10" fill="#1e293b">Continuous Deployment</text>
+  <rect x="160" y="258" width="80" height="44" fill="#fde68a" stroke="#334155" stroke-width="0.5"/><text x="200" y="284" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="11" font-weight="600" fill="#92400e">2.4</text>
+  <rect x="250" y="258" width="80" height="44" fill="#bbf7d0" stroke="#334155" stroke-width="0.5"/><text x="290" y="284" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="11" font-weight="600" fill="#14532d">3.6</text>
+  <rect x="340" y="258" width="80" height="44" fill="#15803d" stroke="#334155" stroke-width="0.5"/><text x="380" y="284" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="11" font-weight="600" fill="#fff">4.0</text>
+  <rect x="430" y="258" width="80" height="44" fill="#e2e8f0" stroke="#334155" stroke-width="0.5" stroke-dasharray="4 3"/><text x="470" y="284" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="9" fill="#64748b">n/a</text>
+  <text x="100" y="348" text-anchor="end" font-family="Segoe UI, system-ui, sans-serif" font-size="10" fill="#1e293b">Release on Demand</text>
+  <rect x="160" y="318" width="80" height="44" fill="#15803d" stroke="#334155" stroke-width="0.5"/><text x="200" y="344" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="11" font-weight="600" fill="#fff">4.1</text>
+  <rect x="250" y="318" width="80" height="44" fill="#bbf7d0" stroke="#334155" stroke-width="0.5"/><text x="290" y="344" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="11" font-weight="600" fill="#14532d">3.5</text>
+  <rect x="340" y="318" width="80" height="44" fill="#fde68a" stroke="#334155" stroke-width="0.5"/><text x="380" y="344" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="11" font-weight="600" fill="#92400e">2.7</text>
+  <rect x="430" y="318" width="80" height="44" fill="#bbf7d0" stroke="#334155" stroke-width="0.5"/><text x="470" y="344" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="11" font-weight="600" fill="#14532d">3.9</text>
+  <text x="360" y="385" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="9" fill="#64748b">Map P1-P4 to practice_name; use domain_rollups for row summaries in BI tools</text>
+</svg>
