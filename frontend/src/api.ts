@@ -68,6 +68,7 @@ export async function createSession(body: {
   name: string;
   email: string;
   team_name: string;
+  ai_review_consent: boolean;
 }): Promise<SessionFull> {
   const res = await apiFetch(apiUrl("/api/sessions"), {
     method: "POST",

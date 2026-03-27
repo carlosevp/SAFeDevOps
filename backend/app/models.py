@@ -17,6 +17,7 @@ class AssessmentSession(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     email: Mapped[str] = mapped_column(String(320), nullable=False)
     team_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    ai_review_consent: Mapped[bool] = mapped_column(default=False, nullable=False)
     assessment_version: Mapped[str] = mapped_column(String(64), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_utc_now, onupdate=_utc_now)

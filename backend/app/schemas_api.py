@@ -10,6 +10,10 @@ class IdentityIn(BaseModel):
     name: str = Field(min_length=1, max_length=255)
     email: EmailStr
     team_name: str = Field(min_length=1, max_length=255)
+    ai_review_consent: bool = Field(
+        ...,
+        description="User consent for AI-assisted review of assessment responses.",
+    )
 
 
 class SessionCreateIn(IdentityIn):
@@ -21,6 +25,7 @@ class SessionOut(BaseModel):
     name: str
     email: str
     team_name: str
+    ai_review_consent: bool
     assessment_version: str
     current_practice_index: int
     created_at: datetime

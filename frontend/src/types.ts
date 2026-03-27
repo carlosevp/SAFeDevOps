@@ -38,6 +38,7 @@ export type SessionInfo = {
   name: string;
   email: string;
   team_name: string;
+  ai_review_consent: boolean;
   assessment_version: string;
   current_practice_index: number;
   created_at: string;

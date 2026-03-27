@@ -53,7 +53,7 @@ export default function App() {
     })();
   }, [gatePhase]);
 
-  async function onStart(body: { name: string; email: string; team_name: string }) {
+  async function onStart(body: { name: string; email: string; team_name: string; ai_review_consent: boolean }) {
     const s = await createSession(body);
     sessionStorage.setItem(STORAGE_KEY, String(s.session.id));
     setSessionId(s.session.id);

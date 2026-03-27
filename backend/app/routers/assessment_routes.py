@@ -282,12 +282,18 @@ def _session_full(db: Session, session: AssessmentSession, definition) -> Sessio
     )
 
 
-@router.post("/sessions", response_model=SessionFullOut)
+@router.post("/sessions", response_model=SessionFullOut, responses=HTTP_400)
 def create_session(body: SessionCreateIn, db: DbSession, definition: AssessmentDep):
+    if not body.ai_review_consent:
+        raise HTTPException(
+            status_code=400,
+            detail="AI review consent is required to start this assessment.",
+        )
     s = AssessmentSession(
         name=body.name.strip(),
         email=str(body.email).strip(),
         team_name=body.team_name.strip(),
+        ai_review_consent=bool(body.ai_review_consent),
         assessment_version=definition.assessment_version,
         current_practice_index=0,
     )

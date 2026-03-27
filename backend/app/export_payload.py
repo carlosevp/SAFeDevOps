@@ -203,6 +203,7 @@ def build_results_payload(
             "name": session.name,
             "email": session.email,
             "team_name": session.team_name,
+            "ai_review_consent": bool(session.ai_review_consent),
         },
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
         "assessment_version": definition.assessment_version,
