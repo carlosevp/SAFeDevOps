@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
 import json
 import logging
 import re
@@ -76,6 +77,7 @@ NEUTRAL_CAP = "You have reached the follow-up limit. You may still continue."
 
 ALLOWED_UPLOAD_EXT = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".pdf"}
 MAX_UPLOAD_BYTES = 15 * 1024 * 1024
+AI_CONSENT_VERSION = "2026-03-privacy-guard-v1"
 
 
 def _safe_filename(name: str) -> str:
@@ -289,11 +291,19 @@ def create_session(body: SessionCreateIn, db: DbSession, definition: AssessmentD
             status_code=400,
             detail="AI review consent is required to start this assessment.",
         )
+    if not body.data_restrictions_ack:
+        raise HTTPException(
+            status_code=400,
+            detail="Restricted data attestation is required to start this assessment.",
+        )
     s = AssessmentSession(
         name=body.name.strip(),
         email=str(body.email).strip(),
         team_name=body.team_name.strip(),
         ai_review_consent=bool(body.ai_review_consent),
+        data_restrictions_ack=bool(body.data_restrictions_ack),
+        ai_consent_version=AI_CONSENT_VERSION,
+        ai_consented_at=datetime.now(UTC),
         assessment_version=definition.assessment_version,
         current_practice_index=0,
     )

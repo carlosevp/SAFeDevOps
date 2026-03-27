@@ -14,6 +14,10 @@ class IdentityIn(BaseModel):
         ...,
         description="User consent for AI-assisted review of assessment responses.",
     )
+    data_restrictions_ack: bool = Field(
+        ...,
+        description="User attestation that restricted data (PII/PHI/secrets) will not be submitted.",
+    )
 
 
 class SessionCreateIn(IdentityIn):
@@ -26,6 +30,9 @@ class SessionOut(BaseModel):
     email: str
     team_name: str
     ai_review_consent: bool
+    data_restrictions_ack: bool
+    ai_consent_version: str
+    ai_consented_at: datetime
     assessment_version: str
     current_practice_index: int
     created_at: datetime

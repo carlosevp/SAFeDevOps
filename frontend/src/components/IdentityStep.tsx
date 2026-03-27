@@ -6,6 +6,7 @@ type Props = {
     email: string;
     team_name: string;
     ai_review_consent: boolean;
+    data_restrictions_ack: boolean;
   }) => Promise<void>;
 };
 
@@ -14,6 +15,7 @@ export function IdentityStep({ onStart }: Readonly<Props>) {
   const [email, setEmail] = useState("");
   const [teamName, setTeamName] = useState("");
   const [aiReviewConsent, setAiReviewConsent] = useState(false);
+  const [dataRestrictionsAck, setDataRestrictionsAck] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -28,6 +30,10 @@ export function IdentityStep({ onStart }: Readonly<Props>) {
       setError("Please confirm AI review consent before starting.");
       return;
     }
+    if (!dataRestrictionsAck) {
+      setError("Please confirm the restricted data attestation before starting.");
+      return;
+    }
     setBusy(true);
     try {
       await onStart({
@@ -35,6 +41,7 @@ export function IdentityStep({ onStart }: Readonly<Props>) {
         email: email.trim(),
         team_name: teamName.trim(),
         ai_review_consent: aiReviewConsent,
+        data_restrictions_ack: dataRestrictionsAck,
       });
       /* onCreated set by parent from response */
     } catch (err) {
@@ -47,10 +54,7 @@ export function IdentityStep({ onStart }: Readonly<Props>) {
   return (
     <div className="card identity-card">
       <h2 style={{ marginTop: 0, fontSize: "1.25rem" }}>Your details</h2>
-      <p className="subtle">
-        One practice at a time, AI sufficiency review, optional evidence, export when you are done. Scores stay hidden
-        until the final summary.
-      </p>
+      <p className="subtle">Complete your details and confirm consent before starting.</p>
       <form onSubmit={submit}>
         <div className="field">
           <label htmlFor="name">Name</label>
@@ -71,21 +75,37 @@ export function IdentityStep({ onStart }: Readonly<Props>) {
           <label htmlFor="team">Team name</label>
           <input id="team" value={teamName} onChange={(e) => setTeamName(e.target.value)} required />
         </div>
-        <div className="field">
-          <label htmlFor="ai-consent" style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
+        <fieldset className="consent-panel">
+          <legend className="consent-panel-title">AI Review Consent & Data Restrictions</legend>
+          <ul className="consent-list subtle">
+            <li>Only provide delivery/process details relevant to this assessment.</li>
+            <li>Do not type or upload PII, PHI, secrets, credentials, or regulated customer data.</li>
+            <li>If sensitive content is unavoidable, redact or anonymize it before submitting.</li>
+          </ul>
+          <label htmlFor="ai-consent" className="consent-check">
             <input
               id="ai-consent"
               type="checkbox"
               checked={aiReviewConsent}
               onChange={(e) => setAiReviewConsent(e.target.checked)}
               required
-              style={{ marginTop: "0.2rem" }}
+            />
+            <span>I consent to AI-assisted review of this session’s responses and uploaded evidence.</span>
+          </label>
+          <label htmlFor="data-restrictions-ack" className="consent-check">
+            <input
+              id="data-restrictions-ack"
+              type="checkbox"
+              checked={dataRestrictionsAck}
+              onChange={(e) => setDataRestrictionsAck(e.target.checked)}
+              required
             />
             <span>
-              I consent to AI being used to review my assessment responses and uploaded evidence for this session.
+              I confirm that I will not submit restricted information (including PII, PHI, secrets, or similar
+              protected data).
             </span>
           </label>
-        </div>
+        </fieldset>
         {error ? <div className="error-text">{error}</div> : null}
         <div className="row" style={{ marginTop: "1rem" }}>
           <button className="btn btn-primary" type="submit" disabled={busy}>
