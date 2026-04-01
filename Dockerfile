@@ -1,7 +1,7 @@
 # Single image: Vite SPA + FastAPI (same Railway URL). Set VITE_API_BASE_URL at build only if API is on another host.
 # Runtime uses Alpine (musl) for a smaller surface and fewer distro CVEs vs Debian slim; frontend build stage matches.
 
-FROM node:20-alpine AS frontend
+FROM node:25-alpine AS frontend
 RUN apk upgrade --no-cache
 WORKDIR /fe
 COPY frontend/package.json frontend/package-lock.json ./
